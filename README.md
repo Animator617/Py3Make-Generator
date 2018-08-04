@@ -2,4 +2,4 @@
 
 TODO:
 * make project on Makefile
-* dedicated debug mode
+* ~~dedicated debug mode~~
