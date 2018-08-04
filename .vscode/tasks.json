@@ -6,14 +6,10 @@
         {
             "label": "debug-build",
             "type": "shell",
-            "command": "g++",
+            "command": "make",
             "args": [
-                "-g",
-                "-Wall",
-                "-Wextra",
-                "main.cpp",
-                "-o",
-                "debug/${workspaceFolderBasename}.exe"
+                "config=debug",
+                "appName=${workspaceFolderBasename}.exe"
             ],
             "group": "build",
             "presentation": {
@@ -25,13 +21,9 @@
         {
             "label": "release-build",
             "type": "shell",
-            "command": "g++",
+            "command": "make",
             "args": [
-                "main.cpp",
-                "-Wall",
-                "-Wextra",
-                "-o",
-                "release/${workspaceFolderBasename}.exe"
+                "appName=${workspaceFolderBasename}.exe"
             ],
             "group": "build",
             "presentation": {
@@ -58,10 +50,7 @@
         {
             "label": "clean-all",
             "type": "shell",
-            "command":[
-                "rm -rf debug/*.*",
-                "rm -rf release/*.*"
-            ],
+            "command": "make clean-all",
             "group": "build"
         }
     ]

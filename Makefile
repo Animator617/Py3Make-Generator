@@ -1,4 +1,4 @@
-config=debug
+config=release
 CC=g++
 CFLAGS :=
 
@@ -14,7 +14,8 @@ CFLAGS+=-c -Wall -Wall
 LDFLAGS=
 SOURCES=main.cpp Test.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
-EXECUTABLE=$(config)/hello
+appName=app
+EXECUTABLE=$(config)/$(appName)
 
 all: prepare $(SOURCES) $(EXECUTABLE)
     
