@@ -1,6 +1,7 @@
 config=debug
 CC=g++
 CFLAGS :=
+
 ifeq ($(config), debug)
 	CFLAGS+=-g
 else
@@ -8,7 +9,6 @@ else
 		CFLAGS+=-O3
 	endif
 endif
-
 
 CFLAGS+=-c -Wall -Wall
 LDFLAGS=
@@ -19,7 +19,7 @@ EXECUTABLE=$(config)/hello
 all: prepare $(SOURCES) $(EXECUTABLE)
     
 $(EXECUTABLE): $(OBJECTS)
-	$(CC) $(LDFLAGS) $(config)-obj/$(OBJECTS) -o $@ # BUG: only first element has correct directory to object file (.o)
+	$(CC) $(LDFLAGS) $(foreach val,$(OBJECTS),$(config)-obj/$(val)) -o $@
 
 prepare:
 	@mkdir -p $(config)
