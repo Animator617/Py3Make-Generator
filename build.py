@@ -4,10 +4,12 @@
 # * class to parse a json file - done
 # * class to generate a Makefile
 # * implemente a logic
+# * more descriton what i going on
 # * add documentation
 
 import sys
 import os
+import shutil
 import json
 from fnmatch import fnmatch
 
@@ -17,14 +19,17 @@ class BuildJson:
         self.data = json.load(json_file)
         json_file.close()
     
-    def get(self, what):
+    def getData(self):
+        return self.data
+
+    def getValue(self, what):
         return self.data[what]
 
 
 class Workspace:
-    def __init__(self):
+    def __init__(self, settingsCat):
         self.pattern = ['.cpp', '.c', '.cc', '.cxx']
-        self.settingsCatalog = ".builddb"
+        self.settingsCatalog = settingsCat
         if not os.path.exists(self.settingsCatalog):
             try:
                 os.makedirs(self.settingsCatalog)
@@ -36,7 +41,7 @@ class Workspace:
 
     def saveToFile(self):
         currentFileList = open(self.destFileList, 'w')
-        currentFileList.seek(0)
+        currentFileList.seek(0) # probably is set in the upper line, but I want to be sure
         for i in self.fileList:
             currentFileList.write(i + '\n')
         currentFileList.close()
@@ -48,7 +53,7 @@ class Workspace:
         print(len(self.fileList))
         print(len(d1))
         if len(self.fileList) != len(d1):
-            print("is diffrent")
+            print("is different")
             self.fileList.clear() # clear old file list
             self.scanWorkspace() # get new file list
             self.saveToFile() # save to filedb file list
@@ -72,30 +77,66 @@ class Workspace:
 
 
 class MakefileGenerator:
-    def __init__(self):
-        print("makefile")
-    
-    def getWorkspace(workspace):
-        return 0
+    def __init__(self, settingsCat):
+        self.settingsCatalog = settingsCat
+        copyFileDir = settingsCat + "/build.json"
+        if not os.path.exists(copyFileDir):
+            shutil.copy("./build.json", copyFileDir)
+        # compare two json file (old and new)
+        # if are diffrent copy build.json to .builddb/build.json
+        # and generate new makefile
+        builddbFile = BuildJson(copyFileDir)
+        currentFile = BuildJson('./build.json')
+        if builddbFile.getData() != currentFile.getData(): # remove white characters
+            print("Makefile - build.json are different")
+            shutil.copy("./build.json", copyFileDir)
+            self.generateMakefile(currentFile) # generate new makefile
+        else:
+            print("Makefile - build.json are the same")
 
+    def generateMakefile(self, jsonFile):
+        print("Start generate Makefile")
+        makefile = open('Makefile', 'w')
+        makefile.write("CC=g++\n")
+        makefile.write("CFLAGS=\n")
+        makefile.close()
+        print("End generate Makefile")
 
 
 def testFunction():
-    test = BuildJson('build.json')
-    workspce = Workspace()
-    workspce.scanWorkspace()
-    workspce.saveToFile()
+    #buildFile = "build.json"
+    #ws = '.builddb'
+    #make = MakefileGenerator(ws)
+    #test = BuildJson(buildFile)
+    #workspce = Workspace(ws)
+    #workspce.scanWorkspace()
+    #workspce.saveToFile()
    # workspce.diffFileList()
     #print(test.get('code')['libs']['linux'][0])
-    print(workspce.getFileList())
+    #print(workspce.getFileList())
+    workspace = Workspace('.builddb')
+    workspace.scanWorkspace()
+    workspace.saveToFile()
+    makefile = MakefileGenerator('.builddb')
+    buildJson = BuildJson('build.json')
+    makefile.generateMakefile(buildJson)
 
-def initializeProject():
-    print("init project")
+# only prepare to build.py update
+def initializeProject(buildCat):
+    workspace = Workspace(buildCat)
+    workspace.scanWorkspace()
+    workspace.saveToFile()
+    makefile = MakefileGenerator(buildCat)
+    makefile.generateMakefile()
+    # print("init project")
 
-def updateProject(workspace):
+def updateProject(buildCat):
+    workspace = Workspace(buildCat)
     workspace.diffWorkspace()
+    makefile = MakefileGenerator(buildCat)
+    makefile.generateMakefile(BuildJson('build.json'))
 
-def usage():
+def usage(): # improvement this description
     message = "python3 build.py [args]\n" \
               "args:\n" \
               "> init - initialize project\n" \
@@ -104,9 +145,9 @@ def usage():
     print(message)
 
 def actions(action):
-    w = Workspace()
-    if action == "init": initializeProject()
-    elif action == "update": updateProject(w)
+    settingsCat = '.builddb'
+    if action == "init": initializeProject(settingsCat)
+    elif action == "update": updateProject(settingsCat)
     elif action == "test": testFunction()
     else: usage()
 
