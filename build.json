@@ -1,0 +1,43 @@
+{
+    "version": "0.0.1",
+    "general": [
+        {
+            "appName": "",
+            "projectWorkspace": ""
+        }
+    ],
+    "code": [
+        {
+            "includeDir": [
+                "$PATH"
+            ],
+            "includeDirExternal": [
+
+            ],
+            "libs": [
+
+            ],
+            "libsExternal": [
+
+            ]
+        }
+    ],
+    "debug": [
+        {
+            "flags": [
+                "-g",
+                "-Wall",
+                "-Wextra"
+            ]
+        }
+    ],
+    "release": [
+        {
+            "flags": [
+                "-O3",
+                "-Wall",
+                "-Wextra"
+            ]
+        }
+    ]
+}
