@@ -7,3 +7,4 @@ TODO:
 * generate a Makefile
 * ~~updating `.builddb/filesdb` after a added/deleted `.cpp/.c/.cxx/.cc` file~~
 * support for Windows and Linux
+* add unit tests
