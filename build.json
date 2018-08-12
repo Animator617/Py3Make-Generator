@@ -15,6 +15,17 @@
 
             ],
             "libs": [
+                {
+                "win32": [ // not nedded
+
+                ]
+                },
+                {
+                    
+                    "linux": [  // not nedded
+
+                    ]
+                }
 
             ],
             "libsExternal": [
