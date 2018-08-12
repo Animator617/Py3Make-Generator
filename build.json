@@ -1,56 +1,38 @@
 {
-    "version": "0.0.1",
-    "general": [
-        {
-            "appName": "",
+    "version": "0.0.2",
+    "general": {
+            "appName": "app",
             "projectWorkspace": "."
+    },
+    "code": {
+        "includeDir": [
+            "$PATH",
+            "C:\\"
+        ],
+        "includeDirExternal": [ ],
+        "libs": {
+            "win32": [ "glfw3", "kernel32" ],
+            "linux": [ "glfw3" ]
+        },
+        "libsExternal": {
+            "win32": [ "glfw3", "kernel32" ],
+            "linux": [ "glfw3" ]
         }
-    ],
-    "code": [
-        {
-            "includeDir": [
-                "$PATH" 
-            ],
-            "includeDirExternal": [
-            ],
-            "libs": [
-                {
-                "win32": [ 
-
-                ]
-                },
-                {
-                    
-                    "linux": [
-                    ]
-                }
-
-            ],
-            "libsExternal": [
-            ]
-        }
-    ],
-    "debug": [
-        {
-            "flags": [
-                "-g",
-                "-Wall",
-                "-Wextra"
-            ],
-            "definitions": [
-            ]
-        }
-    ],
-    "release": [
-        {
-            "flags": [
-                "-O3",
-                "-Wall",
-                "-Wextra"
-            ],
-            "definitions": [
-
-            ]
-        }
-    ]
+    },
+    "debug": {
+        "flags": [
+            "-g",
+            "-Wall",
+            "-Wextra"
+        ],
+        "define": [ ]
+    },
+    "release": {
+        "flags": [
+            "-O3",
+            "-Wall",
+            "-Wextra"
+        ],
+        "define": [ ]
+    }
 }
