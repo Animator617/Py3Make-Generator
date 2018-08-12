@@ -2,52 +2,57 @@
     "version": "0.0.1",
     "general": [
         {
-            "appName": "",
-            "projectWorkspace": ""
+            "appName": "", // default is like a catalog name
+            "projectWorkspace": "." // default value
         }
     ],
     "code": [
         {
             "includeDir": [
-                "$PATH"
+                "$PATH" // default - build.py must find gcc/g++
             ],
-            "includeDirExternal": [
-
+            "includeDirExternal": [ // not needed (optional)
             ],
             "libs": [
                 {
-                "win32": [ // not nedded
+                "win32": [ // optional if only linux support
 
                 ]
                 },
                 {
                     
-                    "linux": [  // not nedded
+                    "linux": [  // optional if only windows support
 
                     ]
                 }
 
             ],
-            "libsExternal": [
+            "libsExternal": [ // not needed (optional)
 
             ]
         }
     ],
     "debug": [
         {
-            "flags": [
+            "flags": [ // needed
                 "-g",
                 "-Wall",
                 "-Wextra"
+            ],
+            "definitions": [ // optional
+
             ]
         }
     ],
     "release": [
         {
-            "flags": [
+            "flags": [ // needed
                 "-O3",
                 "-Wall",
                 "-Wextra"
+            ],
+            "definitions": [ // optional
+
             ]
         }
     ]
