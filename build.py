@@ -3,8 +3,6 @@
 # TODO:
 # * class to parse a json file - done
 # * class to generate a Makefile
-# * implemente a logic
-# * more descriton what i going on
 # * add documentation
 
 import sys
@@ -139,9 +137,8 @@ def updateProject(buildCat):
 def usage(): # improvement this description
     message = "python3 build.py [args]\n" \
               "args:\n" \
-              "> init - initialize project\n" \
-              "> update - update a project (generate a new Makefile)\n" \
-              "Example: python3 build.py init"
+              "python3 build.py init - initialize project\n" \
+              "python3 build.py update - update a project (generate a new Makefile)" 
     print(message)
 
 def actions(action):
