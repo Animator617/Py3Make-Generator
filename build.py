@@ -82,7 +82,8 @@ class BuildJson:
 
 class Workspace:
     def __init__(self, settingsCat):
-        self.pattern = ['.cpp', '.c', '.cc', '.cxx']
+        self.patternSources = ['.cpp', '.c', '.cc', '.cxx']
+        self.patternHeaders = ['.hpp', '.h', '.hh', '.hxx']
         self.settingsCatalog = settingsCat
         if not os.path.exists(self.settingsCatalog):
             try:
@@ -123,7 +124,7 @@ class Workspace:
     def scan(self):
         for path, subdirs, files in os.walk('.'):
             for name in files:
-                for i in self.pattern:
+                for i in self.patternSources:
                     pp = "*"+i
                     if fnmatch(name, pp):
                         self.fileList.append(os.path.join(path, name))
@@ -162,7 +163,7 @@ class MakefileGenerator:
 
 def testFunction():
     return 
-    
+
 def testBuildJson():
     bj = BuildJson('build.json')
     print("version: " + bj.getVersion())
