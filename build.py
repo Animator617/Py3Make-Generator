@@ -2,10 +2,10 @@
 
 # TODO:
 # * class to parse a json file - done
-# * class to generate a Makefile
-# * add documentation
-# * expand BuildJson class
-# * possibility to skip catalog or file while scan workspace
+# * expand BuildJson class - done
+# * class to generate a Makefile - in progress
+# * add documentation - not started
+# * possibility to skip catalog or file while scan workspace - not started
 
 import sys
 import os
@@ -135,7 +135,7 @@ class Workspace:
 
 
 class MakefileGenerator:
-    def __init__(self, settingsCat):
+    def __init__(self, settingsCat, jsonFile):
         self.settingsCatalog = settingsCat
         copyFileDir = settingsCat + "/build.json"
         if not os.path.exists(copyFileDir):
@@ -144,25 +144,43 @@ class MakefileGenerator:
         # if are diffrent copy build.json to .builddb/build.json
         # and generate new makefile
         builddbFile = BuildJson(copyFileDir)
-        currentFile = BuildJson('./build.json')
-        if builddbFile.getData() != currentFile.getData(): # remove white characters
+        if builddbFile.getData() != jsonFile.getData():
             print("Makefile - build.json are different")
             shutil.copy("./build.json", copyFileDir)
-            self.generateMakefile(currentFile) # generate new makefile
-        else:
-            print("Makefile - build.json are the same")
+        self.buildJson = jsonFile
+        self.Makefile = open('Makefile', 'w')
 
-    def generateMakefile(self, jsonFile):
+    def __del__(self):
+        self.Makefile.close()
+
+    def writeLine(self, line):
+        self.Makefile.write(line + os.linesep)
+
+    def arrayToStr(self, array):
+        i = ' '
+        return i.join(array)
+
+    def arrayToStrReg(self, array, reg):
+        i = ' -I'
+        return i.join(reg)
+
+    def generateValues(self):
+        # INCLUDES
+        tmpArray = []
+        for i in self.buildJson.getIncludeDirExternal():
+            tmpArray.append('-I\"'+ i + '\"' )
+        self.writeLine("INCLUDES=" + self.arrayToStr(tmpArray))
+
+    def generateMakefile(self):
         print("Start generate Makefile")
-        makefile = open('Makefile', 'w')
-        makefile.write("CC=g++\n")
-        makefile.write("CFLAGS=\n")
-        makefile.close()
+        self.generateValues()
         print("End generate Makefile")
 
 
-def testFunction():
-    return 
+def testMakefile():
+    bj = BuildJson('build.json')
+    mk = MakefileGenerator('.builddb', bj)
+    mk.generateMakefile()
 
 def testBuildJson():
     bj = BuildJson('build.json')
@@ -211,7 +229,7 @@ def actions(action):
     settingsCat = '.builddb'
     if action == "init": initializeProject(settingsCat)
     elif action == "update": updateProject(settingsCat)
-    elif action == "test": testFunction()
+    elif action == "makefile-test": testMakefile()
     elif action == "json-test": testBuildJson()
     else: usage()
 
