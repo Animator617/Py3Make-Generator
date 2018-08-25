@@ -16,7 +16,7 @@
         },
         "libsExternal": {
             "win32": [ "glfw3", "kernel32" ],
-            "linux": [ "glfw3" ]
+            "linux": [ "glfw3", "pthreads" ]
         }
     },
     "debug": {
@@ -25,7 +25,7 @@
             "-Wall",
             "-Wextra"
         ],
-        "define": [ ]
+        "define": [ "DEBUG" ]
     },
     "release": {
         "flags": [
@@ -33,6 +33,6 @@
             "-Wall",
             "-Wextra"
         ],
-        "define": [ ]
+        "define": [ "RELEASE" ]
     }
 }
