@@ -4,6 +4,7 @@
 # * class to parse a json file - done
 # * class to generate a Makefile
 # * add documentation
+# * expand BuildJson class
 
 import sys
 import os
@@ -16,12 +17,66 @@ class BuildJson:
         json_file = open(filename, 'r')
         self.data = json.load(json_file)
         json_file.close()
-    
+
     def getData(self):
         return self.data
 
-    def getValue(self, what):
-        return self.data[what]
+    def getVersion(self):
+        return self.data['version']
+
+    def getGeneral(self):
+        return self.data['general']
+
+    def getAppName(self):
+        return self.getGeneral()['appName']
+
+    def getProjectWorkspacePath(self):
+        return self.getGeneral()['projectWorkspace']
+    
+    def getCodeInfo(self):
+        return self.data['code']
+
+    def getIncludeDir(self):
+        return self.getCodeInfo()['includeDir']
+
+    def getIncludeDirExternal(self):
+        return self.getCodeInfo()['includeDirExternal']
+
+    def getLibs(self):
+        return self.getCodeInfo()['libs']
+
+    def getWindowsLibs(self):
+        return self.getLibs()['win32']
+    
+    def getLinuxLibs(self):
+        return self.getLibs()['linux']
+
+    def getLibsExternal(self):
+        return self.getCodeInfo()['libsExternal']
+    
+    def getWindowsLibsExternal(self):
+        return self.getLibsExternal()['win32']
+    
+    def getLinuxLibsExternal(self):
+        return self.getLibsExternal()['linux']
+
+    def getDebugMode(self):
+        return self.data['debug']
+
+    def getFlagsDebugMode(self):
+        return self.getDebugMode()['flags']
+
+    def getDefineDebugMode(self):
+        return self.getDebugMode()['define']
+
+    def getReleaseMode(self):
+        return self.data['release']
+
+    def getFlagsReleaseMode(self):
+        return self.getReleaseMode()['flags']
+
+    def getDefineReleaseMode(self):
+        return self.getReleaseMode()['define']
 
 
 class Workspace:
@@ -105,12 +160,16 @@ class MakefileGenerator:
 
 
 def testFunction():
-    workspace = Workspace('.builddb') # test workspace
-    workspace.update()
+    #workspace = Workspace('.builddb') # test workspace
+    #workspace.update()
 
-    makefile = MakefileGenerator('.builddb') # test makefile
+    #makefile = MakefileGenerator('.builddb') # test makefile
     buildJson = BuildJson('build.json')
-    makefile.generateMakefile(buildJson)
+    print(buildJson.getAppName())
+    print(buildJson.getIncludeDir()[0])
+    print(buildJson.getWindowsLibs())
+    print(buildJson.getDebugMode())
+    #makefile.generateMakefile(buildJson)
 
 # only prepare to build.py update
 def initializeProject(buildCat):
