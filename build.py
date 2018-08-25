@@ -5,6 +5,7 @@
 # * class to generate a Makefile
 # * add documentation
 # * expand BuildJson class
+# * possibility to skip catalog or file while scan workspace
 
 import sys
 import os
@@ -160,16 +161,28 @@ class MakefileGenerator:
 
 
 def testFunction():
-    #workspace = Workspace('.builddb') # test workspace
-    #workspace.update()
-
-    #makefile = MakefileGenerator('.builddb') # test makefile
-    buildJson = BuildJson('build.json')
-    print(buildJson.getAppName())
-    print(buildJson.getIncludeDir()[0])
-    print(buildJson.getWindowsLibs())
-    print(buildJson.getDebugMode())
-    #makefile.generateMakefile(buildJson)
+    return 
+    
+def testBuildJson():
+    bj = BuildJson('build.json')
+    print("version: " + bj.getVersion())
+    print("appName: " + bj.getAppName())
+    print("projectWorkspace: " + bj.getProjectWorkspacePath())
+    i = ', '
+    print("includeDir: " + i.join(bj.getIncludeDir()))
+    print("includeDirExternal: " + i.join(bj.getIncludeDirExternal()))
+    print("libs:")
+    print("    win32: " + i.join(bj.getWindowsLibs()))
+    print("    linux: " + i.join(bj.getLinuxLibs()))
+    print("libs external:")
+    print("    win32: " + i.join(bj.getWindowsLibsExternal()))
+    print("    linux: " + i.join(bj.getLinuxLibsExternal()))
+    print("debug mode")
+    print("    flags: " + i.join(bj.getFlagsDebugMode()))
+    print("    define: " + i.join(bj.getDefineDebugMode()))
+    print("release mode")
+    print("    flags: " + i.join(bj.getFlagsReleaseMode()))
+    print("    define: " + i.join(bj.getDefineReleaseMode()))
 
 # only prepare to build.py update
 def initializeProject(buildCat):
@@ -198,6 +211,7 @@ def actions(action):
     if action == "init": initializeProject(settingsCat)
     elif action == "update": updateProject(settingsCat)
     elif action == "test": testFunction()
+    elif action == "json-test": testBuildJson()
     else: usage()
 
 def main():
