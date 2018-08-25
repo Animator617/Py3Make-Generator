@@ -39,31 +39,34 @@ class Workspace:
         self.fileList = [ ]
         self.destFileList = self.settingsCatalog + "/filedb"
 
-    def saveToFile(self):
+    def save(self):
         currentFileList = open(self.destFileList, 'w')
         currentFileList.seek(0) # probably is set in the upper line, but I want to be sure
         for i in self.fileList:
             currentFileList.write(i + '\n')
         currentFileList.close()
 
-    def diffWorkspace(self): # add try to open file
+    def isChanged(self):
+        if not os.path.exists(self.destFileList):
+            self.save()
         pervList = open(self.destFileList, 'r')
         d1 = pervList.readlines()
-        self.scanWorkspace()
-        print(len(self.fileList))
-        print(len(d1))
-        if len(self.fileList) != len(d1):
-            print("is different")
-            self.fileList.clear() # clear old file list
-            self.scanWorkspace() # get new file list
-            self.saveToFile() # save to filedb file list
-        else:
-            print("is the same")
         pervList.close()
+        self.scan()
+        if len(self.fileList) != len(d1):
+            return True
+        else:
+            return False
+
+    def update(self):
+        if self.isChanged():
+            self.fileList.clear() # clear old file list
+            self.scan() # get new file list
+            self.save() # save to filedb file list
 
     # method get all path to .cpp/.c/.cc.cxx files
     # and save in fileList array
-    def scanWorkspace(self):
+    def scan(self):
         for path, subdirs, files in os.walk('.'):
             for name in files:
                 for i in self.pattern:
@@ -104,20 +107,10 @@ class MakefileGenerator:
 
 
 def testFunction():
-    #buildFile = "build.json"
-    #ws = '.builddb'
-    #make = MakefileGenerator(ws)
-    #test = BuildJson(buildFile)
-    #workspce = Workspace(ws)
-    #workspce.scanWorkspace()
-    #workspce.saveToFile()
-   # workspce.diffFileList()
-    #print(test.get('code')['libs']['linux'][0])
-    #print(workspce.getFileList())
-    workspace = Workspace('.builddb')
-    workspace.scanWorkspace()
-    workspace.saveToFile()
-    makefile = MakefileGenerator('.builddb')
+    workspace = Workspace('.builddb') # test workspace
+    workspace.update()
+
+    makefile = MakefileGenerator('.builddb') # test makefile
     buildJson = BuildJson('build.json')
     makefile.generateMakefile(buildJson)
 
