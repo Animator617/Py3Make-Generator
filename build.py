@@ -9,6 +9,7 @@
 
 import sys
 import os
+import platform
 import shutil
 import json
 from fnmatch import fnmatch
@@ -155,7 +156,7 @@ class MakefileGenerator:
         self.Makefile.close()
 
     def writeLine(self, line):
-        self.Makefile.write(line + os.linesep)
+        self.Makefile.write(line + '\n')
 
     def arrayToStr(self, array):
         i = ' '
@@ -169,12 +170,15 @@ class MakefileGenerator:
         # INCLUDES
         tmpArray = []
         for i in self.buildJson.getIncludeDirExternal():
-            tmpArray.append('-I\"'+ i + '\"' )
+            tmpArray.append('-I'+ i  )
         self.writeLine("INCLUDES=" + self.arrayToStr(tmpArray))
 
     def generateMakefile(self, workspace):
         print("Start generate Makefile")
         appName = self.buildJson.getAppName()
+        if platform.system() == 'Windows':
+            appName += ".exe"
+        
         fileList = workspace.getFileList()
         fileListWithoutExt = []
         for i in fileList:
@@ -189,13 +193,14 @@ class MakefileGenerator:
             fileListWithO.append(i+'.o')
         self.writeLine("CC=g++")
         self.writeLine("CXXFLAGS=" + self.arrayToStr(self.buildJson.getFlagsDebugMode()))
+        self.generateValues()
         self.writeLine("all: " + appName)
         self.Makefile.write(appName + ': ' + self.arrayToStr(fileListWithO) + '\n')
         self.writeLine("\t$(CC) " + self.arrayToStr(fileListWithO) + " -o " + appName)
 
         for i in range(0, len(fileListWithO)):
             self.Makefile.write(fileListWithO[i] + ' : ' + fileList[i]+'\n')
-            self.writeLine("\t$(CC) $(CXXFLAGS) " + fileList[i])
+            self.writeLine("\t$(CC) $(CXXFLAGS) -c " + fileList[i])
 
         print("End generate Makefile")
 
