@@ -149,6 +149,7 @@ class MakefileGenerator:
             shutil.copy("./build.json", copyFileDir)
         self.buildJson = jsonFile
         self.Makefile = open('Makefile', 'w')
+        self.fileSourceList = []
 
     def __del__(self):
         self.Makefile.close()
@@ -171,16 +172,40 @@ class MakefileGenerator:
             tmpArray.append('-I\"'+ i + '\"' )
         self.writeLine("INCLUDES=" + self.arrayToStr(tmpArray))
 
-    def generateMakefile(self):
+    def generateMakefile(self, workspace):
         print("Start generate Makefile")
-        self.generateValues()
+        appName = self.buildJson.getAppName()
+        fileList = workspace.getFileList()
+        fileListWithoutExt = []
+        for i in fileList:
+            fileListWithoutExt.append(os.path.splitext(i)[0])
+        print(fileListWithoutExt)
+        fileListOnlyName = []
+        for i in fileListWithoutExt:
+            fileListOnlyName.append(os.path.basename(i))
+        print(fileListOnlyName)
+        fileListWithO = []
+        for i in fileListOnlyName:
+            fileListWithO.append(i+'.o')
+        self.writeLine("CC=g++")
+        self.writeLine("CXXFLAGS=" + self.arrayToStr(self.buildJson.getFlagsDebugMode()))
+        self.writeLine("all: " + appName)
+        self.Makefile.write(appName + ': ' + self.arrayToStr(fileListWithO) + '\n')
+        self.writeLine("\t$(CC) " + self.arrayToStr(fileListWithO) + " -o " + appName)
+
+        for i in range(0, len(fileListWithO)):
+            self.Makefile.write(fileListWithO[i] + ' : ' + fileList[i]+'\n')
+            self.writeLine("\t$(CC) $(CXXFLAGS) " + fileList[i])
+
         print("End generate Makefile")
 
 
 def testMakefile():
     bj = BuildJson('build.json')
+    wk = Workspace('.builddb')
+    wk.update()
     mk = MakefileGenerator('.builddb', bj)
-    mk.generateMakefile()
+    mk.generateMakefile(wk)
 
 def testBuildJson():
     bj = BuildJson('build.json')
