@@ -134,6 +134,15 @@ class Workspace:
     def getFileList(self):
         return self.fileList
 
+class MakeConstValues:
+    Includes = "INCLUDES"
+    CXXFlags = "CXXFLAGS"
+    LDFlags = "LDFLAGS"
+    Libs = "LIBS"
+    GCC = "CXX"
+    
+
+
 
 class MakefileGenerator:
     def __init__(self, settingsCat, jsonFile):
@@ -167,11 +176,12 @@ class MakefileGenerator:
         return i.join(reg)
 
     def generateValues(self):
+        consts = MakeConstValues()
         # INCLUDES
         tmpArray = []
         for i in self.buildJson.getIncludeDirExternal():
-            tmpArray.append('-I'+ i  )
-        self.writeLine("INCLUDES=" + self.arrayToStr(tmpArray))
+            tmpArray.append('-I\''+ i + '\'' )
+        self.writeLine(consts.Includes+'=' + self.arrayToStr(tmpArray))
 
     def generateMakefile(self, workspace):
         print("Start generate Makefile")
@@ -191,8 +201,8 @@ class MakefileGenerator:
         fileListWithO = []
         for i in fileListOnlyName:
             fileListWithO.append(i+'.o')
-        self.writeLine("CC=g++")
-        self.writeLine("CXXFLAGS=" + self.arrayToStr(self.buildJson.getFlagsDebugMode()))
+        self.writeLine(MakeConstValues.GCC + "=g++")
+        self.writeLine(MakeConstValues.CXXFlags + '=' + self.arrayToStr(self.buildJson.getFlagsDebugMode()))
         self.generateValues()
         self.writeLine("all: " + appName)
         self.Makefile.write(appName + ': ' + self.arrayToStr(fileListWithO) + '\n')
