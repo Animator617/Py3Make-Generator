@@ -142,8 +142,6 @@ class MakeConstValues:
     GCC = "CXX"
     
 
-
-
 class MakefileGenerator:
     def __init__(self, settingsCat, jsonFile):
         self.settingsCatalog = settingsCat
@@ -178,39 +176,62 @@ class MakefileGenerator:
     def generateValues(self):
         consts = MakeConstValues()
         # INCLUDES
-        tmpArray = []
-        for i in self.buildJson.getIncludeDirExternal():
-            tmpArray.append('-I\''+ i + '\'' )
-        self.writeLine(consts.Includes+'=' + self.arrayToStr(tmpArray))
+        
 
     def generateMakefile(self, workspace):
         print("Start generate Makefile")
         appName = self.buildJson.getAppName()
         if platform.system() == 'Windows':
             appName += ".exe"
-        
+        # get file list (.cpp)
         fileList = workspace.getFileList()
         fileListWithoutExt = []
         for i in fileList:
             fileListWithoutExt.append(os.path.splitext(i)[0])
-        print(fileListWithoutExt)
+
+        # print(fileListWithoutExt)
+        # targets
         fileListOnlyName = []
         for i in fileListWithoutExt:
             fileListOnlyName.append(os.path.basename(i))
-        print(fileListOnlyName)
+        # print(fileListOnlyName)
+
+        # object files
         fileListWithO = []
         for i in fileListOnlyName:
-            fileListWithO.append(i+'.o')
+            fileListWithO.append(i + '.o')
+
+        # start write to Makefile
+
+        # set values like CXX, CXXFLAGS, etc.
         self.writeLine(MakeConstValues.GCC + "=g++")
         self.writeLine(MakeConstValues.CXXFlags + '=' + self.arrayToStr(self.buildJson.getFlagsDebugMode()))
-        self.generateValues()
-        self.writeLine("all: " + appName)
-        self.Makefile.write(appName + ': ' + self.arrayToStr(fileListWithO) + '\n')
-        self.writeLine("\t$(CC) " + self.arrayToStr(fileListWithO) + " -o " + appName)
+        tmpArray = []
+        for i in self.buildJson.getWindowsLibs():
+            tmpArray.append(' -l' + i)
+        self.writeLine(MakeConstValues.Libs + '=' + self.arrayToStr(tmpArray))
+        tmpArray.clear()
+        for i in self.buildJson.getIncludeDirExternal():
+            tmpArray.append(' -I'+ i)
+        
+        self.writeLine(MakeConstValues.Includes+'=' + self.arrayToStr(tmpArray))
 
+        # main target
+        self.writeLine("\n.PHONY: all")
+        self.writeLine("\nall: " + appName + '\n')
+        self.Makefile.write(appName + ': ' + self.arrayToStr(fileListWithO) + '\n')
+        self.writeLine('\t$(' + MakeConstValues.GCC + ') ' + self.arrayToStr(fileListWithO) + " -o " + appName)
+
+        # sub-targets
         for i in range(0, len(fileListWithO)):
-            self.Makefile.write(fileListWithO[i] + ' : ' + fileList[i]+'\n')
-            self.writeLine("\t$(CC) $(CXXFLAGS) -c " + fileList[i])
+            self.Makefile.write('\n' + fileListWithO[i] + ' : ' + fileList[i]+'\n')
+            # self.writeLine("\t@echo Building a " + fileList[i] + '\n') # TODO: new print
+            self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.CXXFlags+ ') $(' + 
+            MakeConstValues.Includes + ') $(' + MakeConstValues.Libs + ') -c ' + fileList[i])
+            
+
+        self.writeLine("\nclean-all:")
+        self.writeLine("\trm -rf *.o *.exe")
 
         print("End generate Makefile")
 
