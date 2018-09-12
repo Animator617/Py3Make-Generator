@@ -92,7 +92,8 @@ class Workspace:
             except OSError as e:
                 if e.errno != errno.EEXIST:
                     raise
-        self.fileList = [ ]
+        self.fileList = []
+        self.dirsList = []
         self.destFileList = self.settingsCatalog + "/filedb"
 
     def save(self):
@@ -123,24 +124,41 @@ class Workspace:
     # method get all path to .cpp/.c/.cc.cxx files
     # and save in fileList array
     def scan(self):
-        for path, subdirs, files in os.walk('.'):
-            for name in files:
+        for path, subdirs, files in os.walk('.'): # subdirs is not used because os.walk() return
+            for name in files:                    # list of sub-folder in folders
                 for i in self.patternSources:
-                    pp = "*"+i
+                    pp = '*' + i
                     if fnmatch(name, pp):
                         self.fileList.append(os.path.join(path, name))
+                        self.dirsList.append(path)
         self.fileList.sort()
+        self.dirsList.sort()
+        if platform.system() == 'Windows':
+            for i in range(0, len(self.fileList)):
+                self.fileList[i] = self.fileList[i][2:] # remove '.\\'
+            #for i in range(0, len(self.dirsList)):
+            #    self.dirsList[i] = self.dirsList[i][2:] # remove '.\\'
+            # print(self.fileList)
+
+    def getDirs(self):
+        return self.dirsList
 
     def getFileList(self):
         return self.fileList
 
 class MakeConstValues:
-    Includes = "INCLUDES"
-    CXXFlags = "CXXFLAGS"
-    LDFlags = "LDFLAGS"
-    Libs = "LIBS"
-    GCC = "CXX"
+    Includes = 'INCLUDES'
+    CXXFlags = 'CXXFLAGS'
+    LDFlags = 'LDFLAGS'
+    Libs = 'LIBS'
+    GCC = 'CXX'
     
+class MakeOutputsCatalogs:
+    App = 'bin'
+    BuildMode = ['Debug' , 'Release']
+    DebugObjectFile = 'obj-' + BuildMode[0]
+    ReleaseObjectFile = 'obj-' + BuildMode[1]
+
 
 class MakefileGenerator:
     def __init__(self, settingsCat, jsonFile):
@@ -201,6 +219,14 @@ class MakefileGenerator:
         for i in fileListOnlyName:
             fileListWithO.append(i + '.o')
 
+        if not os.path.exists(MakeOutputsCatalogs.DebugObjectFile):
+            os.makedirs(MakeOutputsCatalogs.DebugObjectFile)
+
+        for i in workspace.getDirs():
+            dir = MakeOutputsCatalogs.DebugObjectFile  + i
+            if not os.path.exists(dir):
+                os.makedirs(dir)
+
         # start write to Makefile
 
         # set values like CXX, CXXFLAGS, etc.
@@ -215,6 +241,9 @@ class MakefileGenerator:
             tmpArray.append(' -I'+ i)
         
         self.writeLine(MakeConstValues.Includes+'=' + self.arrayToStr(tmpArray))
+        fullPathOFile = []
+        for i in fileListWithoutExt:
+            fullPathOFile.append(i + '.o')
 
         # main target
         self.writeLine("\n.PHONY: all")
@@ -224,13 +253,13 @@ class MakefileGenerator:
 
         # sub-targets
         for i in range(0, len(fileListWithO)):
-            self.Makefile.write('\n' + fileListWithO[i] + ' : ' + fileList[i]+'\n')
+            self.Makefile.write('\n' + fileListWithO[i] + ' : ' + fileList[i] + '\n')
             # self.writeLine("\t@echo Building a " + fileList[i] + '\n') # TODO: new print
-            self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.CXXFlags+ ') $(' + 
+            self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.CXXFlags + ') $(' +
             MakeConstValues.Includes + ') $(' + MakeConstValues.Libs + ') -c ' + fileList[i])
             
 
-        self.writeLine("\nclean-all:")
+        self.writeLine("\nclean:")
         self.writeLine("\trm -rf *.o *.exe")
 
         print("End generate Makefile")
