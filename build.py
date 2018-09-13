@@ -94,7 +94,7 @@ class Workspace:
                     raise
         self.fileList = []
         self.dirsList = []
-        self.destFileList = self.settingsCatalog + "/filedb"
+        self.destFileList = self.settingsCatalog + '/filedb'
 
     def save(self):
         currentFileList = open(self.destFileList, 'w')
@@ -154,25 +154,28 @@ class MakeConstValues:
     GCC = 'CXX'
     
 class MakeOutputsCatalogs:
-    App = 'bin'
     BuildMode = ['Debug' , 'Release']
-    DebugObjectFile = 'obj-' + BuildMode[0]
-    ReleaseObjectFile = 'obj-' + BuildMode[1]
+    App = 'bin'
+    DebugApp = App + '/' + BuildMode[0]
+    ReleaseApp = App + '/' + BuildMode[1]
+    ObjectFiles = 'obj'
+    DebugObjectFile = ObjectFiles + '/' + BuildMode[0]
+    ReleaseObjectFile = ObjectFiles + '/' + BuildMode[1]
 
 
 class MakefileGenerator:
     def __init__(self, settingsCat, jsonFile):
         self.settingsCatalog = settingsCat
-        copyFileDir = settingsCat + "/build.json"
+        copyFileDir = settingsCat + '/build.json'
         if not os.path.exists(copyFileDir):
-            shutil.copy("./build.json", copyFileDir)
+            shutil.copy('./build.json', copyFileDir)
         # compare two json file (old and new)
         # if are diffrent copy build.json to .builddb/build.json
         # and generate new makefile
         builddbFile = BuildJson(copyFileDir)
         if builddbFile.getData() != jsonFile.getData():
-            print("Makefile - build.json are different")
-            shutil.copy("./build.json", copyFileDir)
+            print('Makefile - build.json are different')
+            shutil.copy('./build.json', copyFileDir)
         self.buildJson = jsonFile
         self.Makefile = open('Makefile', 'w')
         self.fileSourceList = []
@@ -188,8 +191,8 @@ class MakefileGenerator:
         return i.join(array)
 
     def arrayToStrReg(self, array, reg):
-        i = ' -I'
-        return i.join(reg)
+        i = reg + ' '
+        return i.join(array)
 
     def generateValues(self):
         consts = MakeConstValues()
@@ -197,10 +200,10 @@ class MakefileGenerator:
         
 
     def generateMakefile(self, workspace):
-        print("Start generate Makefile")
+        print('Start generate Makefile')
         appName = self.buildJson.getAppName()
         if platform.system() == 'Windows':
-            appName += ".exe"
+            appName += '.exe'
         # get file list (.cpp)
         fileList = workspace.getFileList()
         fileListWithoutExt = []
@@ -219,18 +222,33 @@ class MakefileGenerator:
         for i in fileListOnlyName:
             fileListWithO.append(i + '.o')
 
+        # create a bin catalog for executable app
+        if not os.path.exists(MakeOutputsCatalogs.DebugApp):
+            os.makedirs(MakeOutputsCatalogs.DebugApp)
+
+        if not os.path.exists(MakeOutputsCatalogs.ReleaseApp):
+            os.makedirs(MakeOutputsCatalogs.ReleaseApp)
+
+        # craete a obj catalog for .o files
         if not os.path.exists(MakeOutputsCatalogs.DebugObjectFile):
             os.makedirs(MakeOutputsCatalogs.DebugObjectFile)
 
+        if not os.path.exists(MakeOutputsCatalogs.ReleaseObjectFile):
+            os.makedirs(MakeOutputsCatalogs.ReleaseObjectFile)
+
+        # create sub-catalogs (deps from [.cpp, .c, .cxx, .cc] files)
         for i in workspace.getDirs():
-            dir = MakeOutputsCatalogs.DebugObjectFile  + i
-            if not os.path.exists(dir):
-                os.makedirs(dir)
+            dirDebug = MakeOutputsCatalogs.DebugObjectFile  + i
+            dirRelease = MakeOutputsCatalogs.ReleaseObjectFile + i
+            if not os.path.exists(dirDebug):
+                os.makedirs(dirDebug)
+            if not os.path.exists(dirRelease):
+                os.makedirs(dirRelease)
 
         # start write to Makefile
 
         # set values like CXX, CXXFLAGS, etc.
-        self.writeLine(MakeConstValues.GCC + "=g++")
+        self.writeLine(MakeConstValues.GCC + '=g++')
         self.writeLine(MakeConstValues.CXXFlags + '=' + self.arrayToStr(self.buildJson.getFlagsDebugMode()))
         tmpArray = []
         for i in self.buildJson.getWindowsLibs():
@@ -245,24 +263,37 @@ class MakefileGenerator:
         for i in fileListWithoutExt:
             fullPathOFile.append(i + '.o')
 
-        # main target
-        self.writeLine("\n.PHONY: all")
-        self.writeLine("\nall: " + appName + '\n')
-        self.Makefile.write(appName + ': ' + self.arrayToStr(fileListWithO) + '\n')
-        self.writeLine('\t$(' + MakeConstValues.GCC + ') ' + self.arrayToStr(fileListWithO) + " -o " + appName)
+        print(fileListWithoutExt)
+        oTargets = []
+        for i in fileListWithoutExt:
+            oTargets.append(i + '.o')
 
-        # sub-targets
+
+        targetsToRemoveDebug = []
         for i in range(0, len(fileListWithO)):
-            self.Makefile.write('\n' + fileListWithO[i] + ' : ' + fileList[i] + '\n')
+            oDir = MakeOutputsCatalogs.DebugObjectFile + '/' + oTargets[i]
+            targetsToRemoveDebug.append(oDir)
+        # main target
+        self.writeLine('\n.PHONY: all')
+        self.writeLine('\nall: ' + appName + '\n')
+        self.Makefile.write(appName + ': debug-target\n')
+        self.writeLine('\t$(' + MakeConstValues.GCC + ') ' + self.arrayToStr(targetsToRemoveDebug) + ' -o ' + MakeOutputsCatalogs.DebugApp + '/' + appName)
+
+       
+        # sub-targets
+        self.Makefile.write('\ndebug-target:\n')
+        for i in range(0, len(fileListWithO)):
+            oDir = MakeOutputsCatalogs.DebugObjectFile + '/' + oTargets[i]
             # self.writeLine("\t@echo Building a " + fileList[i] + '\n') # TODO: new print
-            self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.CXXFlags + ') $(' +
-            MakeConstValues.Includes + ') $(' + MakeConstValues.Libs + ') -c ' + fileList[i])
+            self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.CXXFlags + ') -c ' + fileList[i] + ' $(' +
+            MakeConstValues.Includes + ') $(' + MakeConstValues.Libs + ') ' + ' -o ' + oDir)
             
 
-        self.writeLine("\nclean:")
-        self.writeLine("\trm -rf *.o *.exe")
+        self.writeLine('\nclean:')
 
-        print("End generate Makefile")
+        self.writeLine('\trm -rf ' + MakeOutputsCatalogs.DebugApp + '/*.exe '  + self.arrayToStr(targetsToRemoveDebug))
+
+        print('End generate Makefile')
 
 
 def testMakefile():
@@ -317,10 +348,10 @@ def usage(): # improvement this description
 
 def actions(action):
     settingsCat = '.builddb'
-    if action == "init": initializeProject(settingsCat)
-    elif action == "update": updateProject(settingsCat)
-    elif action == "makefile-test": testMakefile()
-    elif action == "json-test": testBuildJson()
+    if action == 'init': initializeProject(settingsCat)
+    elif action == 'update': updateProject(settingsCat)
+    elif action == 'makefile-test': testMakefile()
+    elif action == 'json-test': testBuildJson()
     else: usage()
 
 def main():
