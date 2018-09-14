@@ -273,12 +273,19 @@ class MakefileGenerator:
         for i in range(0, len(fileListWithO)):
             oDir = MakeOutputsCatalogs.DebugObjectFile + '/' + oTargets[i]
             targetsToRemoveDebug.append(oDir)
+
+        targetsToRemoveRelease = []
+        for i in range(0, len(fileListWithO)):
+            oDir = MakeOutputsCatalogs.ReleaseObjectFile + '/' + oTargets[i]
+            targetsToRemoveRelease.append(oDir)
+
         # main target
         self.writeLine('\n.PHONY: all')
-        self.writeLine('\nall: ' + appName + '\n')
-        self.Makefile.write(appName + ': debug-target\n')
+        self.writeLine('\nall: debug release\n')
+        self.Makefile.write("debug" + ': debug-target\n')
         self.writeLine('\t$(' + MakeConstValues.GCC + ') ' + self.arrayToStr(targetsToRemoveDebug) + ' -o ' + MakeOutputsCatalogs.DebugApp + '/' + appName)
-
+        self.Makefile.write("release" + ': release-target\n')
+        self.writeLine('\t$(' + MakeConstValues.GCC + ') ' + self.arrayToStr(targetsToRemoveRelease) + ' -o ' + MakeOutputsCatalogs.ReleaseApp + '/' + appName)
        
         # sub-targets
         self.Makefile.write('\ndebug-target:\n')
@@ -288,6 +295,13 @@ class MakefileGenerator:
             self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.CXXFlags + ') -c ' + fileList[i] + ' $(' +
             MakeConstValues.Includes + ') $(' + MakeConstValues.Libs + ') ' + ' -o ' + oDir)
             
+
+        self.Makefile.write('\nrelease-target:\n')
+        for i in range(0, len(fileListWithO)):
+            oDir = MakeOutputsCatalogs.ReleaseObjectFile + '/' + oTargets[i]
+            # self.writeLine("\t@echo Building a " + fileList[i] + '\n') # TODO: new print
+            self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.CXXFlags + ') -c ' + fileList[i] + ' $(' +
+            MakeConstValues.Includes + ') $(' + MakeConstValues.Libs + ') ' + ' -o ' + oDir)
 
         self.writeLine('\nclean:')
 
