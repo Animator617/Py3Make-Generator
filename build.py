@@ -262,13 +262,13 @@ class MakefileGenerator:
             tmpArray.append(' -D' + i)
         self.writeLine(MakeConstValues.DefineRelease + '=' + self.arrayToStr(tmpArray))
         tmpArray.clear()
-        
+
         if self.isWindows(): # windows
             for i in self.buildJson.getWindowsLibs():
                 tmpArray.append(' -l' + i)
         else:
             for i in self.buildJson.getLinuxLibs():
-                tmpArray.appedn(' -l' + i)
+                tmpArray.append(' -l' + i)
 
         self.writeLine(MakeConstValues.Libs + '=' + self.arrayToStr(tmpArray))
         tmpArray.clear()
