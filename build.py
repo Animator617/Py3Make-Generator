@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-# TODO:
 # * class to parse a json file - done
 # * expand BuildJson class - done
 # * class to generate a Makefile - in progress
@@ -12,7 +11,7 @@ import os
 import platform
 import shutil
 import json
-from fnmatch import fnmatch
+import fnmatch
 
 class BuildJson:
     def __init__(self, filename):
@@ -34,7 +33,7 @@ class BuildJson:
 
     def getProjectWorkspacePath(self):
         return self.getGeneral()['projectWorkspace']
-    
+
     def getCodeInfo(self):
         return self.data['code']
 
@@ -52,7 +51,7 @@ class BuildJson:
 
     def getWindowsLibs(self):
         return self.getLibs()['win32']
-    
+
     def getLinuxLibs(self):
         return self.getLibs()['linux']
 
@@ -150,16 +149,14 @@ class MakeConstValues:
     DefineDebug = 'DDEFINE'
     DefineRelease = 'DEFINE'
 
-    
 class MakeOutputsCatalogs:
-    BuildMode = ['Debug' , 'Release']
+    BuildMode = ['Debug', 'Release']
     App = 'bin'
     DebugApp = App + '/' + BuildMode[0]
     ReleaseApp = App + '/' + BuildMode[1]
     ObjectFiles = 'obj'
     DebugObjectFile = ObjectFiles + '/' + BuildMode[0]
     ReleaseObjectFile = ObjectFiles + '/' + BuildMode[1]
-
 
 class MakefileGenerator:
     def __init__(self, settingsCat, jsonFile):
@@ -172,7 +169,7 @@ class MakefileGenerator:
         # and generate new makefile
         builddbFile = BuildJson(copyFileDir)
         if builddbFile.getData() != jsonFile.getData():
-            print('Makefile - build.json are different')
+            # print('Makefile - build.json are different')
             shutil.copy('./build.json', copyFileDir)
         self.buildJson = jsonFile
         self.Makefile = open('Makefile', 'w')
@@ -202,7 +199,7 @@ class MakefileGenerator:
             return False
 
     def generateMakefile(self, workspace):
-        print('Start generate Makefile')
+        # print('Start generate Makefile')
         appName = self.buildJson.getAppName()
         if self.isWindows():
             appName += '.exe'
@@ -212,12 +209,10 @@ class MakefileGenerator:
         for i in fileList:
             fileListWithoutExt.append(os.path.splitext(i)[0])
 
-        # print(fileListWithoutExt)
         # targets
         fileListOnlyName = []
         for i in fileListWithoutExt:
             fileListOnlyName.append(os.path.basename(i))
-        # print(fileListOnlyName)
 
         # object files
         fileListWithO = []
@@ -251,8 +246,11 @@ class MakefileGenerator:
 
         # set values like CXX, CXXFLAGS, etc.
         self.writeLine(MakeConstValues.GCC + '=g++')
-        self.writeLine(MakeConstValues.CXXFlags + '=' + self.arrayToStr(self.buildJson.getFlagsReleaseMode()))
-        self.writeLine(MakeConstValues.DCXXFlags + '=' + self.arrayToStr(self.buildJson.getFlagsDebugMode()))
+        self.writeLine(MakeConstValues.CXXFlags + '=' +
+                       self.arrayToStr(self.buildJson.getFlagsReleaseMode()))
+
+        self.writeLine(MakeConstValues.DCXXFlags + '=' +
+                       self.arrayToStr(self.buildJson.getFlagsDebugMode()))
         tmpArray = []
         for i in self.buildJson.getDefineDebugMode():
             tmpArray.append(' -D' + i)
@@ -278,13 +276,12 @@ class MakefileGenerator:
         else:
             for i in self.buildJson.getLinuxIncludeDir():
                 tmpArray.append(' -I' + i)
-        
+
         self.writeLine(MakeConstValues.Includes+'=' + self.arrayToStr(tmpArray))
         fullPathOFile = []
         for i in fileListWithoutExt:
             fullPathOFile.append(i + '.o')
 
-        # print(fileListWithoutExt)
         oTargets = []
         for i in fileListWithoutExt:
             oTargets.append(i + '.o')
@@ -304,36 +301,40 @@ class MakefileGenerator:
         self.writeLine('\n.PHONY: all')
         self.writeLine('\nall: debug release\n')
         self.Makefile.write("debug" + ': debug-target\n')
-        self.writeLine('\t$(' + MakeConstValues.GCC + ') ' + self.arrayToStr(targetsToRemoveDebug) + ' $(' +
-        MakeConstValues.Libs + ') -o ' + MakeOutputsCatalogs.DebugApp + '/' + appName)
+        self.writeLine('\t$(' + MakeConstValues.GCC + ') ' + self.arrayToStr(targetsToRemoveDebug)
+                       + ' $(' + MakeConstValues.Libs + ') -o ' +
+                       MakeOutputsCatalogs.DebugApp + '/' + appName)
         self.Makefile.write("release" + ': release-target\n')
-        self.writeLine('\t$(' + MakeConstValues.GCC + ') ' + self.arrayToStr(targetsToRemoveRelease) + ' $('+
-        MakeConstValues.Libs + ') -o ' + MakeOutputsCatalogs.ReleaseApp + '/' + appName)
-       
+        self.writeLine('\t$(' + MakeConstValues.GCC + ') ' + self.arrayToStr(targetsToRemoveRelease)
+                       + ' $('+ MakeConstValues.Libs + ') -o ' +
+                       MakeOutputsCatalogs.ReleaseApp + '/' + appName)
+
         # sub-targets
         self.Makefile.write('\ndebug-target:\n')
         for i in range(0, len(fileListWithO)):
             oDir = MakeOutputsCatalogs.DebugObjectFile + '/' + oTargets[i]
-            # self.writeLine("\t@echo Building a " + fileList[i] + '\n') # TODO: new print
-            self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.DefineDebug + ') $(' + MakeConstValues.DCXXFlags + ') -c ' + fileList[i] + ' $(' +
-            MakeConstValues.Includes + ') -o ' + oDir)
+            self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.DefineDebug +
+                           ') $(' + MakeConstValues.DCXXFlags + ') -c ' + fileList[i] + ' $(' +
+                           MakeConstValues.Includes + ') -o ' + oDir)
 
         self.Makefile.write('\nrelease-target:\n')
         for i in range(0, len(fileListWithO)):
             oDir = MakeOutputsCatalogs.ReleaseObjectFile + '/' + oTargets[i]
-            # self.writeLine("\t@echo Building a " + fileList[i] + '\n') # TODO: new print
-            self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.DefineRelease + ') $(' + MakeConstValues.CXXFlags + ') -c ' + fileList[i] + ' $(' +
-            MakeConstValues.Includes + ') -o ' + oDir)
+            self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.DefineRelease +
+                           ') $(' + MakeConstValues.CXXFlags + ') -c ' + fileList[i] + ' $(' +
+                           MakeConstValues.Includes + ') -o ' + oDir)
 
         self.writeLine("\nclean: debug-clean release-clean")
 
         self.writeLine('\ndebug-clean:')
-        self.writeLine('\trm ' + MakeOutputsCatalogs.DebugApp + '/' + appName + ' ' + self.arrayToStr(targetsToRemoveDebug))
+        self.writeLine('\trm ' + MakeOutputsCatalogs.DebugApp + '/' + appName + ' ' +
+                       self.arrayToStr(targetsToRemoveDebug))
 
         self.writeLine('\nrelease-clean:')
-        self.writeLine('\trm ' + MakeOutputsCatalogs.ReleaseApp + '/' + appName + ' ' + self.arrayToStr(targetsToRemoveRelease))
+        self.writeLine('\trm ' + MakeOutputsCatalogs.ReleaseApp + '/' + appName + ' ' +
+                       self.arrayToStr(targetsToRemoveRelease))
 
-        print('End generate Makefile')
+        # print('End generate Makefile')
 
 
 def testMakefile():
