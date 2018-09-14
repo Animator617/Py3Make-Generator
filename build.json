@@ -1,29 +1,24 @@
 {
-    "version": "0.0.2",
+    "version": "0.0.3",
     "general": {
             "appName": "app",
             "projectWorkspace": "."
     },
     "code": {
         "includeDir": [
-            "$PATH",
-            "C:\\"
+            "."
         ],
-        "includeDirExternal": [ ],
         "libs": {
-            "win32": [ "glfw3", "kernel32" ],
+            "win32": [ "mingw32", "user32", "gdi32", "ole32", "kernel32" ],
             "linux": [ "glfw3" ]
-        },
-        "libsExternal": {
-            "win32": [ "glfw3", "kernel32" ],
-            "linux": [ "glfw3", "pthreads" ]
         }
     },
     "debug": {
         "flags": [
             "-g",
             "-Wall",
-            "-Wextra"
+            "-Wextra",
+            "-fpermissive"
         ],
         "define": [ "DEBUG" ]
     },
@@ -33,6 +28,6 @@
             "-Wall",
             "-Wextra"
         ],
-        "define": [ "RELEASE" ]
+        "define": []
     }
 }
