@@ -11,7 +11,7 @@ import os
 import platform
 import shutil
 import json
-import fnmatch
+from fnmatch import fnmatch
 
 class BuildJson:
     def __init__(self, filename):
@@ -193,13 +193,13 @@ class MakefileGenerator:
         consts = MakeConstValues()
         # INCLUDES
     def isWindows(self):
-        if platform.system() == 'Windows':
-            return True
-        else:
+        if platform.system() == 'Linux':
             return False
+        else:
+            return True
 
     def generateMakefile(self, workspace):
-        # print('Start generate Makefile')
+        print('Start generate Makefile')
         appName = self.buildJson.getAppName()
         if self.isWindows():
             appName += '.exe'
@@ -334,7 +334,7 @@ class MakefileGenerator:
         self.writeLine('\trm ' + MakeOutputsCatalogs.ReleaseApp + '/' + appName + ' ' +
                        self.arrayToStr(targetsToRemoveRelease))
 
-        # print('End generate Makefile')
+        print('End generate Makefile')
 
 
 def testMakefile():
