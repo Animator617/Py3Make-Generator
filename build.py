@@ -41,8 +41,8 @@ class BuildJson:
     def getIncludeDir(self):
         return self.getCodeInfo()['includeDir']
 
-    def getIncludeDirExternal(self):
-        return self.getCodeInfo()['includeDirExternal']
+   # def getIncludeDirExternal(self):
+   #     return self.getCodeInfo()['includeDirExternal']
 
     def getLibs(self):
         return self.getCodeInfo()['libs']
@@ -255,7 +255,7 @@ class MakefileGenerator:
             tmpArray.append(' -l' + i)
         self.writeLine(MakeConstValues.Libs + '=' + self.arrayToStr(tmpArray))
         tmpArray.clear()
-        for i in self.buildJson.getIncludeDirExternal():
+        for i in self.buildJson.getIncludeDir():
             tmpArray.append(' -I'+ i)
         
         self.writeLine(MakeConstValues.Includes+'=' + self.arrayToStr(tmpArray))
@@ -303,9 +303,13 @@ class MakefileGenerator:
             self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.CXXFlags + ') -c ' + fileList[i] + ' $(' +
             MakeConstValues.Includes + ') $(' + MakeConstValues.Libs + ') ' + ' -o ' + oDir)
 
-        self.writeLine('\nclean:')
+        self.writeLine("\nclean: debug-clean release-clean")
 
-        self.writeLine('\trm -rf ' + MakeOutputsCatalogs.DebugApp + '/*.exe '  + self.arrayToStr(targetsToRemoveDebug))
+        self.writeLine('\ndebug-clean:')
+        self.writeLine('\trm ' + MakeOutputsCatalogs.DebugApp + '/' + appName + ' ' + self.arrayToStr(targetsToRemoveDebug))
+
+        self.writeLine('\nrelease-clean:')
+        self.writeLine('\trm ' + MakeOutputsCatalogs.ReleaseApp + '/' + appName + ' ' + self.arrayToStr(targetsToRemoveRelease))
 
         print('End generate Makefile')
 
@@ -324,7 +328,7 @@ def testBuildJson():
     print("projectWorkspace: " + bj.getProjectWorkspacePath())
     i = ', '
     print("includeDir: " + i.join(bj.getIncludeDir()))
-    print("includeDirExternal: " + i.join(bj.getIncludeDirExternal()))
+   # print("includeDirExternal: " + i.join(bj.getIncludeDir()))
     print("libs:")
     print("    win32: " + i.join(bj.getWindowsLibs()))
     print("    linux: " + i.join(bj.getLinuxLibs()))
