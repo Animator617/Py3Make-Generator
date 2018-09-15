@@ -274,6 +274,7 @@ class MakefileGenerator:
             for i in self.buildJson.getWindowsIncludeDir():
                 tmpArray.append(' -I' + i)
         else:
+            tmpArray.append(' -I' + self.buildJson.getProjectWorkspacePath())
             for i in self.buildJson.getLinuxIncludeDir():
                 tmpArray.append(' -I' + i)
 
