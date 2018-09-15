@@ -300,24 +300,24 @@ class MakefileGenerator:
         # main target
         self.writeLine('\n.PHONY: all')
         self.writeLine('\nall: debug release\n')
-        self.Makefile.write("debug" + ': debug-target\n')
+        self.writeLine("debug" + ': debug-target')
         self.writeLine('\t$(' + MakeConstValues.GCC + ') ' + self.arrayToStr(targetsToRemoveDebug)
                        + ' $(' + MakeConstValues.Libs + ') -o ' +
                        MakeOutputsCatalogs.DebugApp + '/' + appName)
-        self.Makefile.write("release" + ': release-target\n')
+        self.writeLine("\nrelease" + ': release-target')
         self.writeLine('\t$(' + MakeConstValues.GCC + ') ' + self.arrayToStr(targetsToRemoveRelease)
                        + ' $('+ MakeConstValues.Libs + ') -o ' +
                        MakeOutputsCatalogs.ReleaseApp + '/' + appName)
 
         # sub-targets
-        self.Makefile.write('\ndebug-target:\n')
+        self.writeLine('\ndebug-target:')
         for i in range(0, len(fileListWithO)):
             oDir = MakeOutputsCatalogs.DebugObjectFile + '/' + oTargets[i]
             self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.DefineDebug +
                            ') $(' + MakeConstValues.DCXXFlags + ') -c ' + fileList[i] + ' $(' +
                            MakeConstValues.Includes + ') -o ' + oDir)
 
-        self.Makefile.write('\nrelease-target:\n')
+        self.writeLine('\nrelease-target:')
         for i in range(0, len(fileListWithO)):
             oDir = MakeOutputsCatalogs.ReleaseObjectFile + '/' + oTargets[i]
             self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.DefineRelease +
