@@ -6,12 +6,12 @@
     },
     "code": {
         "includeDir": {
-            "win32": [".", "./include"],
-            "linux": ["/home"]
+            "win32": [],
+            "linux": []
         },
         "libs": {
-            "win32": [ "mingw32", "user32", "gdi32", "ole32", "kernel32" ],
-            "linux": [ "glfw3" ]
+            "win32": [ "user32", "gdi32", "ole32", "kernel32" ],
+            "linux": [ ]
         }
     },
     "debug": {
