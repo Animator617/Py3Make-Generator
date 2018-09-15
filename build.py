@@ -345,55 +345,30 @@ def testMakefile():
     mk = MakefileGenerator('.builddb', bj)
     mk.generateMakefile(wk)
 
-def testBuildJson():
-    bj = BuildJson('build.json')
-    print("version: " + bj.getVersion())
-    print("appName: " + bj.getAppName())
-    print("projectWorkspace: " + bj.getProjectWorkspacePath())
-    i = ', '
-    print("includeDir: " + i.join(bj.getIncludeDir()))
-   # print("includeDirExternal: " + i.join(bj.getIncludeDir()))
-    print("libs:")
-    print("    win32: " + i.join(bj.getWindowsLibs()))
-    print("    linux: " + i.join(bj.getLinuxLibs()))
-    print("libs external:")
-    print("    win32: " + i.join(bj.getWindowsLibsExternal()))
-    print("    linux: " + i.join(bj.getLinuxLibsExternal()))
-    print("debug mode")
-    print("    flags: " + i.join(bj.getFlagsDebugMode()))
-    print("    define: " + i.join(bj.getDefineDebugMode()))
-    print("release mode")
-    print("    flags: " + i.join(bj.getFlagsReleaseMode()))
-    print("    define: " + i.join(bj.getDefineReleaseMode()))
-
 # only prepare to build.py update
 def initializeProject(buildCat):
     workspace = Workspace(buildCat)
-    workspace.scanWorkspace()
-    workspace.saveToFile()
-    makefile = MakefileGenerator(buildCat)
-    makefile.generateMakefile()
-    # print("init project")
+    workspace.update()
+    print("project init - done")
 
 def updateProject(buildCat):
     workspace = Workspace(buildCat)
-    workspace.diffWorkspace()
-    makefile = MakefileGenerator(buildCat)
-    makefile.generateMakefile(BuildJson('build.json'))
+    workspace.update()
+    buildJsonFile = BuildJson('build.json')
+    makefile = MakefileGenerator(buildCat, buildJsonFile)
+    makefile.generateMakefile(workspace)
 
 def usage(): # improvement this description
     message = "python3 build.py [args]\n" \
-              "args:\n" \
-              "python3 build.py init - initialize project\n" \
-              "python3 build.py update - update a project (generate a new Makefile)" 
+              "\t[args]:\n" \
+              "\t  python3 build.py init - initialize project\n" \
+              "\t  python3 build.py update - update a project (generate a new Makefile)" 
     print(message)
 
 def actions(action):
     settingsCat = '.builddb'
     if action == 'init': initializeProject(settingsCat)
     elif action == 'update': updateProject(settingsCat)
-    elif action == 'makefile-test': testMakefile()
-    elif action == 'json-test': testBuildJson()
     else: usage()
 
 def main():
