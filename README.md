@@ -33,3 +33,4 @@ Py3Make Generator is a Makefile generator based on `build.json` file.
 * New targets - generate a library static/dynamic
 * Support for sub-targets
 * Scripts .sh and .bat to automatic build
+* Support to link MSVC library (.lib)
