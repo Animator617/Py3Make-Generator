@@ -1,6 +1,6 @@
 {
-    "version": "0.0.5",
-    "compiler" : "gcc",
+    "version": "0.0.6",
+    "compiler" : "g++",
     "general": {
             "appName": "app",
             "projectWorkspace": "."
@@ -8,6 +8,7 @@
     "code": {
         "includeDir": {
             "win32": [ ],
+            "msvc-lib": [ ],
             "linux": [ ]
         },
         "libs": {

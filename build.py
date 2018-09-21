@@ -55,6 +55,9 @@ class BuildJson:
     def getWindowsLibs(self):
         return self.getLibs()['win32']
 
+    def getMsvcLibs(self):
+        return self.getLibs()['msvc-lib']
+
     def getLinuxLibs(self):
         return self.getLibs()['linux']
 
@@ -148,6 +151,7 @@ class MakeConstValues:
     DCXXFlags = 'DCXXFLAGS'
     LDFlags = 'LDFLAGS'
     Libs = 'LIBS'
+    MSVCLibs = 'MSVCLIBS'
     GCC = 'CXX'
     DefineDebug = 'DDEFINE'
     DefineRelease = 'DEFINE'
@@ -258,20 +262,26 @@ class MakefileGenerator:
         for i in self.buildJson.getDefineDebugMode():
             tmpArray.append(' -D' + i)
         self.writeLine(MakeConstValues.DefineDebug + '=' + self.arrayToStr(tmpArray))
+
         tmpArray.clear()
         for i in self.buildJson.getDefineReleaseMode():
             tmpArray.append(' -D' + i)
         self.writeLine(MakeConstValues.DefineRelease + '=' + self.arrayToStr(tmpArray))
-        tmpArray.clear()
 
+        tmpArray.clear()
         if self.isWindows(): # windows
             for i in self.buildJson.getWindowsLibs():
                 tmpArray.append(' -l' + i)
         else:
             for i in self.buildJson.getLinuxLibs():
                 tmpArray.append(' -l' + i)
-
         self.writeLine(MakeConstValues.Libs + '=' + self.arrayToStr(tmpArray))
+
+        tmpArray.clear()
+        for i in self.buildJson.getMsvcLibs():
+            tmpArray.append(' ' + i)
+        self.writeLine(MakeConstValues.MSVCLibs + '=' + self.arrayToStr(tmpArray))
+
         tmpArray.clear()
         if self.isWindows():
             for i in self.buildJson.getWindowsIncludeDir():
@@ -306,11 +316,11 @@ class MakefileGenerator:
         self.writeLine('\nall: debug release\n')
         self.writeLine("debug" + ': debug-target')
         self.writeLine('\t$(' + MakeConstValues.GCC + ') ' + self.arrayToStr(targetsToRemoveDebug)
-                       + ' $(' + MakeConstValues.Libs + ') -o ' +
+                       + ' $(' + MakeConstValues.Libs + ') $(' + MakeConstValues.MSVCLibs + ') -o ' +
                        MakeOutputsCatalogs.DebugApp + '/' + appName)
         self.writeLine("\nrelease" + ': release-target')
         self.writeLine('\t$(' + MakeConstValues.GCC + ') ' + self.arrayToStr(targetsToRemoveRelease)
-                       + ' $('+ MakeConstValues.Libs + ') -o ' +
+                       + ' $('+ MakeConstValues.Libs + ') $(' + MakeConstValues.MSVCLibs + ') -o ' +
                        MakeOutputsCatalogs.ReleaseApp + '/' + appName)
 
         # sub-targets
