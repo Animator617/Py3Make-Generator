@@ -5,6 +5,7 @@ Py3Make Generator is a Makefile generator based on `build.json` file.
 ## build.json file structure
 
 * `version` - number of iteration a build.json file
+* `compiler` - program to compile, you can use `gcc, g++, clang, etc.`
 * `general` - basic information about project:
     * `appName` - name of application
     * `projectWorkspace` - a path to project workspace can be relative or not
