@@ -8,11 +8,12 @@
     "code": {
         "includeDir": {
             "win32": [ ],
-            "msvc-lib": [ ],
+            
             "linux": [ ]
         },
         "libs": {
             "win32": [ "user32", "gdi32", "ole32", "kernel32" ],
+            "msvc-lib": [ ],
             "linux": [ ]
         }
     },
