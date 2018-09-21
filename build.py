@@ -25,6 +25,9 @@ class BuildJson:
     def getVersion(self):
         return self.data['version']
 
+    def getCompiler(self):
+        return self.data['compiler']
+
     def getGeneral(self):
         return self.data['general']
 
@@ -245,7 +248,7 @@ class MakefileGenerator:
         # start write to Makefile
 
         # set values like CXX, CXXFLAGS, etc.
-        self.writeLine(MakeConstValues.GCC + '=g++')
+        self.writeLine(MakeConstValues.GCC + '=' + self.buildJson.getCompiler())
         self.writeLine(MakeConstValues.CXXFlags + '=' +
                        self.arrayToStr(self.buildJson.getFlagsReleaseMode()))
 
