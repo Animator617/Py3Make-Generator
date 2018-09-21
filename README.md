@@ -38,3 +38,4 @@ Use a `build.sh` on linux to automatic update a workspace and run a compile a pr
 * Support for sub-targets
 * Scripts ~~.sh and~~ .bat to automatic build - in progress
 * Support to link MSVC library (.lib) - not tested
+* Code refactor
