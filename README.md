@@ -40,3 +40,4 @@ Use a `build.sh` or `build.bat` to automatic update a workspace and run a compil
 * ~~Scripts .sh and .bat to automatic build~~ - done
 * ~~Support to link MSVC library (.lib)~~ - done
 * Code refactor
+* `--path` argument to set a project workspace
