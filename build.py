@@ -276,11 +276,12 @@ class MakefileGenerator:
             for i in self.buildJson.getLinuxLibs():
                 tmpArray.append(' -l' + i)
         self.writeLine(MakeConstValues.Libs + '=' + self.arrayToStr(tmpArray))
-
-        tmpArray.clear()
-        for i in self.buildJson.getMsvcLibs():
-            tmpArray.append(' ' + i)
-        self.writeLine(MakeConstValues.MSVCLibs + '=' + self.arrayToStr(tmpArray))
+        
+        if self.isWindows():
+            tmpArray.clear()
+            for i in self.buildJson.getMsvcLibs():
+                tmpArray.append(' ' + i)
+            self.writeLine(MakeConstValues.MSVCLibs + '=' + self.arrayToStr(tmpArray))
 
         tmpArray.clear()
         if self.isWindows():
