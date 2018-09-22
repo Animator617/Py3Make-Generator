@@ -8,7 +8,6 @@
     "code": {
         "includeDir": {
             "win32": [ ],
-            
             "linux": [ ]
         },
         "libs": {

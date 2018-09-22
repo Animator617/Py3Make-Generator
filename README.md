@@ -23,7 +23,7 @@ Py3Make Generator is a Makefile generator based on `build.json` file.
 * python3 build.py update - generates a Makefile base on `build.json` file
 
 ### Recommended:
-Use a `build.sh` on linux to automatic update a workspace and run a compile a program. Targets like below.
+Use a `build.sh` or `build.bat` to automatic update a workspace and run a compile a program. Targets like below.
 
 ### Makefile targets:
 * all - build in debug and release mode
@@ -37,6 +37,6 @@ Use a `build.sh` on linux to automatic update a workspace and run a compile a pr
 * Possibility to skip catalogs and/or files
 * New targets - generate a library static/dynamic
 * Support for sub-targets
-* Scripts ~~.sh and~~ .bat to automatic build - in progress
+* ~~Scripts .sh and .bat to automatic build~~ - done
 * ~~Support to link MSVC library (.lib)~~ - done
 * Code refactor
