@@ -242,8 +242,8 @@ class MakefileGenerator:
 
         # create sub-catalogs (deps from [.cpp, .c, .cxx, .cc] files)
         for i in workspace.getDirs():
-            dirDebug = MakeOutputsCatalogs.DebugObjectFile  + i
-            dirRelease = MakeOutputsCatalogs.ReleaseObjectFile + i
+            dirDebug = MakeOutputsCatalogs.DebugObjectFile + '/' + i
+            dirRelease = MakeOutputsCatalogs.ReleaseObjectFile + '/' + i
             if not os.path.exists(dirDebug):
                 os.makedirs(dirDebug)
             if not os.path.exists(dirRelease):
