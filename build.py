@@ -359,13 +359,7 @@ def testMakefile():
     mk = MakefileGenerator('.builddb', bj)
     mk.generateMakefile(wk)
 
-# only prepare to build.py update
-def initializeProject(buildCat):
-    workspace = Workspace(buildCat)
-    workspace.update()
-    print("project init - done")
-
-def updateProject(buildCat):
+def generateProject(buildCat):
     workspace = Workspace(buildCat)
     workspace.update()
     buildJsonFile = BuildJson('build.json')
@@ -375,14 +369,12 @@ def updateProject(buildCat):
 def usage(): # improvement this description
     message = "python3 build.py [args]\n" \
               "\t[args]:\n" \
-              "\t  python3 build.py init - initialize project\n" \
-              "\t  python3 build.py update - update a project (generate a new Makefile)" 
+              "\t  python3 build.py generate - generate a Makefile base on build.json file"
     print(message)
 
 def actions(action):
     settingsCat = '.builddb'
-    if action == 'init': initializeProject(settingsCat)
-    elif action == 'update': updateProject(settingsCat)
+    if action == 'generate': generateProject(settingsCat)
     else: usage()
 
 def main():
