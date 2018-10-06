@@ -13,6 +13,22 @@ import shutil
 import json
 from fnmatch import fnmatch
 
+# functions
+def isWindows():
+    if platform.system() == 'Linux':
+        return False
+    else:
+        return True
+
+def arrayToString(value):
+    i = ' '
+    return i.join(value)
+
+# class
+
+class Consts:
+    JsonFileName = 'build.json'
+
 class BuildJson:
     def __init__(self, filename):
         json_file = open(filename, 'r')
@@ -79,7 +95,6 @@ class BuildJson:
     def getDefineReleaseMode(self):
         return self.getReleaseMode()['define']
 
-
 class Workspace:
     def __init__(self, settingsCat):
         self.patternSources = ['.cpp', '.c', '.cc', '.cxx']
@@ -93,6 +108,10 @@ class Workspace:
                     raise
         self.fileList = []
         self.dirsList = []
+        self.fileListWithoutExt = []
+        self.fileListOnlyName = []
+        self.fileListWithObject = []
+        self.objectTargets = []
         self.destFileList = self.settingsCatalog + '/filedb'
 
     def save(self):
@@ -130,20 +149,41 @@ class Workspace:
                     if fnmatch(name, pp):
                         self.fileList.append(os.path.join(path, name))
                         self.dirsList.append(path)
+
         self.fileList.sort()
         self.dirsList.sort()
-        if platform.system() == 'Windows':
+        if isWindows():
             for i in range(0, len(self.fileList)):
                 self.fileList[i] = self.fileList[i][2:] # remove '.\\'
             #for i in range(0, len(self.dirsList)):
             #    self.dirsList[i] = self.dirsList[i][2:] # remove '.\\'
             # print(self.fileList)
+        for i in self.fileList:
+            self.fileListWithoutExt.append(os.path.splitext(i)[0])
+
+        for i in self.fileListWithoutExt:
+            self.fileListOnlyName.append(os.path.basename(i))
+
+        for i in self.fileListOnlyName:
+            self.fileListWithObject.append(i + '.o')
+        
+        for i in self.fileListWithoutExt:
+            self.objectTargets.append(i + '.o')
 
     def getDirs(self):
         return self.dirsList
 
     def getFileList(self):
         return self.fileList
+
+    def getFileListOnlyName(self):
+        return self.fileListOnlyName
+
+    def getFileListWithObject(self):
+        return self.fileListWithObject
+
+    def getObjectTargets(self):
+        return self.objectTargets
 
 class MakeConstValues:
     Includes = 'INCLUDES'
@@ -165,19 +205,71 @@ class MakeOutputsCatalogs:
     DebugObjectFile = ObjectFiles + '/' + BuildMode[0]
     ReleaseObjectFile = ObjectFiles + '/' + BuildMode[1]
 
+class PlatformDeps:
+    def includes(self):
+        return
+    
+    def msvcLibs(self):
+        return
+
+    def libs(self):
+        return
+
+class WindowsDeps(PlatformDeps):
+    def __init__(self, buildJsonFile):
+        self.buildJson = buildJsonFile
+
+    def includes(self):
+        result = []
+        for i in self.buildJson.getWindowsIncludeDir():
+            result.append(' -I' + i)
+        return result
+    
+    def msvcLibs(self):
+        result = []
+        for i in self.buildJson.getMsvcLibs():
+            result.append(' ' + i)
+        return result
+
+    def libs(self):
+        result = []
+        for i in self.buildJson.getWindowsLibs():
+            result.append(' -l' + i)
+        return result
+
+class LinuxDeps(PlatformDeps):
+    def __init__(self, buildJsonFile):
+        self.buildJson = buildJsonFile
+
+    def includes(self):
+        result = []
+        for i in self.buildJson.getLinuxIncludeDir():
+            result.append(' -I' + i)
+        return result
+
+    # not applicable
+    def msvcLibs(self):
+        return
+
+    def libs(self):
+        result = []
+        for i in self.buildJson.getLinuxLibs():
+            result.append(' -l' + i)
+        return result
+
 class MakefileGenerator:
     def __init__(self, settingsCat, jsonFile):
         self.settingsCatalog = settingsCat
-        copyFileDir = settingsCat + '/build.json'
+        copyFileDir = settingsCat + '/' + Consts.JsonFileName
         if not os.path.exists(copyFileDir):
-            shutil.copy('./build.json', copyFileDir)
+            shutil.copy('./' + Consts.JsonFileName, copyFileDir)
         # compare two json file (old and new)
         # if are diffrent copy build.json to .builddb/build.json
         # and generate new makefile
         builddbFile = BuildJson(copyFileDir)
         if builddbFile.getData() != jsonFile.getData():
             # print('Makefile - build.json are different')
-            shutil.copy('./build.json', copyFileDir)
+            shutil.copy('./' + Consts.JsonFileName, copyFileDir)
         self.buildJson = jsonFile
         self.Makefile = open('Makefile', 'w')
         self.fileSourceList = []
@@ -188,45 +280,8 @@ class MakefileGenerator:
     def writeLine(self, line):
         self.Makefile.write(line + '\n')
 
-    def arrayToStr(self, array):
-        i = ' '
-        return i.join(array)
-
-    def arrayToStrReg(self, array, reg):
-        i = reg + ' '
-        return i.join(array)
-
-    def generateValues(self):
-        consts = MakeConstValues()
-        # INCLUDES
-    def isWindows(self):
-        if platform.system() == 'Linux':
-            return False
-        else:
-            return True
-
-    def generateMakefile(self, workspace):
-        print('Start generate Makefile')
-        appName = self.buildJson.getAppName()
-        if self.isWindows():
-            appName += '.exe'
-        # get file list (.cpp)
-        fileList = workspace.getFileList()
-        fileListWithoutExt = []
-        for i in fileList:
-            fileListWithoutExt.append(os.path.splitext(i)[0])
-
-        # targets
-        fileListOnlyName = []
-        for i in fileListWithoutExt:
-            fileListOnlyName.append(os.path.basename(i))
-
-        # object files
-        fileListWithO = []
-        for i in fileListOnlyName:
-            fileListWithO.append(i + '.o')
-
-        # create a bin catalog for executable app
+    def createCatalogs(self, workspace):
+    # create a bin catalog for executable app
         if not os.path.exists(MakeOutputsCatalogs.DebugApp):
             os.makedirs(MakeOutputsCatalogs.DebugApp)
 
@@ -249,121 +304,97 @@ class MakefileGenerator:
             if not os.path.exists(dirRelease):
                 os.makedirs(dirRelease)
 
-        # start write to Makefile
-
-        # set values like CXX, CXXFLAGS, etc.
+    def defineValues(self):
+    # set values like CXX, CXXFLAGS, etc.
         self.writeLine(MakeConstValues.GCC + '=' + self.buildJson.getCompiler())
         self.writeLine(MakeConstValues.CXXFlags + '=' +
-                       self.arrayToStr(self.buildJson.getFlagsReleaseMode()))
+                       arrayToString(self.buildJson.getFlagsReleaseMode()))
 
         self.writeLine(MakeConstValues.DCXXFlags + '=' +
-                       self.arrayToStr(self.buildJson.getFlagsDebugMode()))
+                       arrayToString(self.buildJson.getFlagsDebugMode()))
         tmpArray = []
         for i in self.buildJson.getDefineDebugMode():
             tmpArray.append(' -D' + i)
-        self.writeLine(MakeConstValues.DefineDebug + '=' + self.arrayToStr(tmpArray))
+        self.writeLine(MakeConstValues.DefineDebug + '=' + arrayToString(tmpArray))
 
         tmpArray.clear()
         for i in self.buildJson.getDefineReleaseMode():
             tmpArray.append(' -D' + i)
-        self.writeLine(MakeConstValues.DefineRelease + '=' + self.arrayToStr(tmpArray))
+        self.writeLine(MakeConstValues.DefineRelease + '=' + arrayToString(tmpArray))
 
-        tmpArray.clear()
-        if self.isWindows(): # windows
-            for i in self.buildJson.getWindowsLibs():
-                tmpArray.append(' -l' + i)
+    def generateMakefile(self, workspace):
+        print('Generates a Makefile ..', end='')
+        appName = self.buildJson.getAppName()
+        if isWindows():
+            appName += '.exe'
+
+        self.createCatalogs(workspace)
+        # start write to Makefile
+        self.defineValues()
+
+        platform = PlatformDeps()
+        if isWindows():
+            platform = WindowsDeps(self.buildJson)
         else:
-            for i in self.buildJson.getLinuxLibs():
-                tmpArray.append(' -l' + i)
-        self.writeLine(MakeConstValues.Libs + '=' + self.arrayToStr(tmpArray))
-        
-        if self.isWindows():
-            tmpArray.clear()
-            for i in self.buildJson.getMsvcLibs():
-                tmpArray.append(' ' + i)
-            self.writeLine(MakeConstValues.MSVCLibs + '=' + self.arrayToStr(tmpArray))
+            platform = LinuxDeps(self.buildJson)
 
-        tmpArray.clear()
-        if self.isWindows():
-            for i in self.buildJson.getWindowsIncludeDir():
-                tmpArray.append(' -I' + i)
-        else:
-            tmpArray.append(' -I' + self.buildJson.getProjectWorkspacePath())
-            for i in self.buildJson.getLinuxIncludeDir():
-                tmpArray.append(' -I' + i)
-
-        self.writeLine(MakeConstValues.Includes+'=' + self.arrayToStr(tmpArray))
-        fullPathOFile = []
-        for i in fileListWithoutExt:
-            fullPathOFile.append(i + '.o')
-
-        oTargets = []
-        for i in fileListWithoutExt:
-            oTargets.append(i + '.o')
-
+        self.writeLine(MakeConstValues.Libs + '=' + arrayToString(platform.libs()))
+        self.writeLine(MakeConstValues.MSVCLibs + '=' + arrayToString(platform.msvcLibs()))
+        self.writeLine(MakeConstValues.Includes + '=' + arrayToString(platform.includes()))
 
         targetsToRemoveDebug = []
-        for i in range(0, len(fileListWithO)):
-            oDir = MakeOutputsCatalogs.DebugObjectFile + '/' + oTargets[i]
-            targetsToRemoveDebug.append(oDir)
-
         targetsToRemoveRelease = []
-        for i in range(0, len(fileListWithO)):
-            oDir = MakeOutputsCatalogs.ReleaseObjectFile + '/' + oTargets[i]
-            targetsToRemoveRelease.append(oDir)
+
+        for i in workspace.getObjectTargets():
+            oDirDebug = MakeOutputsCatalogs.DebugObjectFile + '/' + i
+            oDirRelease = MakeOutputsCatalogs.ReleaseObjectFile + '/' + i
+            targetsToRemoveDebug.append(oDirDebug)
+            targetsToRemoveRelease.append(oDirRelease)
 
         # main target
         self.writeLine('\n.PHONY: all')
         self.writeLine('\nall: debug release\n')
         self.writeLine("debug" + ': debug-target')
-        self.writeLine('\t$(' + MakeConstValues.GCC + ') ' + self.arrayToStr(targetsToRemoveDebug)
+        self.writeLine('\t$(' + MakeConstValues.GCC + ') ' + arrayToString(targetsToRemoveDebug)
                        + ' $(' + MakeConstValues.Libs + ') $(' + MakeConstValues.MSVCLibs + ') -o ' +
                        MakeOutputsCatalogs.DebugApp + '/' + appName)
         self.writeLine("\nrelease" + ': release-target')
-        self.writeLine('\t$(' + MakeConstValues.GCC + ') ' + self.arrayToStr(targetsToRemoveRelease)
+        self.writeLine('\t$(' + MakeConstValues.GCC + ') ' + arrayToString(targetsToRemoveRelease)
                        + ' $('+ MakeConstValues.Libs + ') $(' + MakeConstValues.MSVCLibs + ') -o ' +
                        MakeOutputsCatalogs.ReleaseApp + '/' + appName)
 
         # sub-targets
         self.writeLine('\ndebug-target:')
-        for i in range(0, len(fileListWithO)):
-            oDir = MakeOutputsCatalogs.DebugObjectFile + '/' + oTargets[i]
+        for i in range(0, len(workspace.getFileListWithObject())):
+            oDir = MakeOutputsCatalogs.DebugObjectFile + '/' + workspace.getObjectTargets()[i]
             self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.DefineDebug +
-                           ') $(' + MakeConstValues.DCXXFlags + ') -c ' + fileList[i] + ' $(' +
+                           ') $(' + MakeConstValues.DCXXFlags + ') -c ' + workspace.getFileList()[i] + ' $(' +
                            MakeConstValues.Includes + ') -o ' + oDir)
 
         self.writeLine('\nrelease-target:')
-        for i in range(0, len(fileListWithO)):
-            oDir = MakeOutputsCatalogs.ReleaseObjectFile + '/' + oTargets[i]
+        for i in range(0, len(workspace.getFileListWithObject())):
+            oDir = MakeOutputsCatalogs.ReleaseObjectFile + '/' + workspace.getObjectTargets()[i]
             self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.DefineRelease +
-                           ') $(' + MakeConstValues.CXXFlags + ') -c ' + fileList[i] + ' $(' +
+                           ') $(' + MakeConstValues.CXXFlags + ') -c ' + workspace.getFileList()[i] + ' $(' +
                            MakeConstValues.Includes + ') -o ' + oDir)
 
         self.writeLine("\nclean: debug-clean release-clean")
 
         self.writeLine('\ndebug-clean:')
         self.writeLine('\trm ' + MakeOutputsCatalogs.DebugApp + '/' + appName + ' ' +
-                       self.arrayToStr(targetsToRemoveDebug))
+                       arrayToString(targetsToRemoveDebug))
 
         self.writeLine('\nrelease-clean:')
         self.writeLine('\trm ' + MakeOutputsCatalogs.ReleaseApp + '/' + appName + ' ' +
-                       self.arrayToStr(targetsToRemoveRelease))
+                       arrayToString(targetsToRemoveRelease))
 
-        print('End generate Makefile')
+        print('.. Done')
 
-
-def testMakefile():
-    bj = BuildJson('build.json')
-    wk = Workspace('.builddb')
-    wk.update()
-    mk = MakefileGenerator('.builddb', bj)
-    mk.generateMakefile(wk)
-
-def generateProject(buildCat):
-    workspace = Workspace(buildCat)
+def generateProject(buildCatalog):
+    workspace = Workspace(buildCatalog)
     workspace.update()
     buildJsonFile = BuildJson('build.json')
-    makefile = MakefileGenerator(buildCat, buildJsonFile)
+    makefile = MakefileGenerator(buildCatalog, buildJsonFile)
     makefile.generateMakefile(workspace)
 
 def usage(): # improvement this description
@@ -373,8 +404,8 @@ def usage(): # improvement this description
     print(message)
 
 def actions(action):
-    settingsCat = '.builddb'
-    if action == 'generate': generateProject(settingsCat)
+    settingsCatalog = '.builddb'
+    if action == 'generate': generateProject(settingsCatalog)
     else: usage()
 
 def main():
