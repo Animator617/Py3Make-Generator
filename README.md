@@ -37,7 +37,7 @@ Use a `build.sh` or `build.bat` to automatic update a workspace and run a compil
 * Possibility to skip catalogs and/or files
 * New targets - generate a library static/dynamic
 * Support for sub-targets
-* ~~Scripts .sh and .bat to automatic build~~ - done
-* ~~Support to link MSVC library (.lib)~~ - done
-* ~~Code refactor~~ - done
+* ~~Scripts .sh and .bat to automatic build~~
+* ~~Support to link MSVC library (.lib)~~
+* ~~Code refactor~~
 
