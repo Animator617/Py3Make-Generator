@@ -2,3 +2,4 @@
 .builddb/
 bin/
 obj/
+*.txt
