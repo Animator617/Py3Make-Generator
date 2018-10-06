@@ -12,6 +12,7 @@ import platform
 import shutil
 import json
 from fnmatch import fnmatch
+from optparse import OptionParser
 
 # functions
 def isWindows():
@@ -390,10 +391,10 @@ class MakefileGenerator:
 
         print('.. Done')
 
-def generateProject(buildCatalog):
+def generateProject(buildCatalog, parameters):
     workspace = Workspace(buildCatalog)
     workspace.update()
-    buildJsonFile = BuildJson('build.json')
+    buildJsonFile = BuildJson(parameters)
     makefile = MakefileGenerator(buildCatalog, buildJsonFile)
     makefile.generateMakefile(workspace)
 
@@ -401,20 +402,25 @@ def usage(): # improvement this description
     message = "python3 build.py [args]\n" \
               "\t[args]:\n" \
               "\t  python3 build.py generate - generate a Makefile base on build.json file"
-    print(message)
+    return message
 
-def actions(action):
+def actions(action, parameters):
     settingsCatalog = '.builddb'
-    if action == 'generate': generateProject(settingsCatalog)
+    if action == 'generate': generateProject(settingsCatalog, parameters)
     else: usage()
 
 def main():
+    global buildJsonFileDir
     args = sys.argv[1:]
+    parser = OptionParser(usage=usage())
+    parser.add_option('-s', '--settings',dest='buildJsonFileDir', default='build.json')
+    (option, arg) = parser.parse_args()
+    buildJsonFileDir = option.buildJsonFileDir
     if not args:
         usage()
     else:
         for i in args:
-            actions(i)
+            actions(i, buildJsonFileDir)
     
 if __name__ == "__main__":
     main()

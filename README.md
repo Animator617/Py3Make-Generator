@@ -19,6 +19,7 @@ Py3Make Generator is a Makefile generator based on `build.json` file.
 
 ## Usage:
 * python3 build.py generate - generates a Makefile base on `build.json` file. Generates a `.builddb` catalog and file database with extensions: `[.cpp, .cxx, .cc, .c]`.
+* `--settings` or `-s` parameter set a directory to `build.json` file
 
 ### Recommended:
 Use a `build.sh` or `build.bat` to automatic update a workspace and run a compile a program. Targets like below.
@@ -32,7 +33,7 @@ Use a `build.sh` or `build.bat` to automatic update a workspace and run a compil
 * release-clean - clean a release output
 
 ## TODO:
-* `--settings` an argument to set point a `build.json` file
+* ~~`--settings` an argument to set point a `build.json` file~~
 * Possibility to skip catalogs and/or files
 * New targets - generate a library static/dynamic
 * Support for sub-targets

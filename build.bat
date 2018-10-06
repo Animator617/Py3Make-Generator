@@ -1,3 +1,3 @@
 
-python3 build.py generate
-make -f Makefile %1
+python3 build.py generate %2
+make -f Makefile %1 
