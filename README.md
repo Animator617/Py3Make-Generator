@@ -32,10 +32,11 @@ Use a `build.sh` or `build.bat` to automatic update a workspace and run a compil
 * release-clean - clean a release output
 
 ## TODO:
+* `--settings` an argument to set point a `build.json` file
 * Possibility to skip catalogs and/or files
 * New targets - generate a library static/dynamic
 * Support for sub-targets
 * ~~Scripts .sh and .bat to automatic build~~ - done
 * ~~Support to link MSVC library (.lib)~~ - done
-* Code refactor - in-progress
-* `--path` argument to set a project workspace
+* ~~Code refactor~~ - done
+
