@@ -186,6 +186,19 @@ class Workspace:
     def getObjectTargets(self):
         return self.objectTargets
 
+    def numberOfFiles(self):
+    #    v = len(self.fileList)
+    #    print ('\nfileList: ' , v)
+    #    v = len(self.dirsList)
+    #    print ('dirsList: ' , v)
+    #    v = len(self.fileListOnlyName)
+    #    print ('fileListOnlyName: ' , v)
+    #    v = len(self.fileListWithObject)
+    #    print ('fileListWithObject: ', v)
+    #   v = len(self.objectTargets)
+    #   print ('objectTargets: ' , v , '\n')
+        return len(self.fileList)
+
 class MakeConstValues:
     Includes = 'INCLUDES'
     CXXFlags = 'CXXFLAGS'
@@ -366,14 +379,14 @@ class MakefileGenerator:
 
         # sub-targets
         self.writeLine('\ndebug-target:')
-        for i in range(0, len(workspace.getFileListWithObject())):
+        for i in range(0, workspace.numberOfFiles()):
             oDir = MakeOutputsCatalogs.DebugObjectFile + '/' + workspace.getObjectTargets()[i]
             self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.DefineDebug +
-                           ') $(' + MakeConstValues.DCXXFlags + ') -c ' + workspace.getFileList()[i] + ' $(' +
-                           MakeConstValues.Includes + ') -o ' + oDir)
+                            ') $(' + MakeConstValues.DCXXFlags + ') -c ' + workspace.getFileList()[i] + ' $(' +
+                            MakeConstValues.Includes + ') -o ' + oDir)
 
         self.writeLine('\nrelease-target:')
-        for i in range(0, len(workspace.getFileListWithObject())):
+        for i in range(0, workspace.numberOfFiles()):
             oDir = MakeOutputsCatalogs.ReleaseObjectFile + '/' + workspace.getObjectTargets()[i]
             self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.DefineRelease +
                            ') $(' + MakeConstValues.CXXFlags + ') -c ' + workspace.getFileList()[i] + ' $(' +
@@ -393,10 +406,13 @@ class MakefileGenerator:
 
 def generateProject(buildCatalog, parameters):
     workspace = Workspace(buildCatalog)
-    workspace.update()
     buildJsonFile = BuildJson(parameters)
-    makefile = MakefileGenerator(buildCatalog, buildJsonFile)
-    makefile.generateMakefile(workspace)
+    if workspace.isChanged() == True:
+        workspace.update()
+        makefile = MakefileGenerator(buildCatalog, buildJsonFile)
+        makefile.generateMakefile(workspace)
+    else:
+        print('No changes')
 
 def usage(): # improvement this description
     message = "python3 build.py [args]\n" \
