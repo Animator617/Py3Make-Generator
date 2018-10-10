@@ -1,11 +1,5 @@
 #!/usr/bin/python3
 
-# * class to parse a json file - done
-# * expand BuildJson class - done
-# * class to generate a Makefile - in progress
-# * add documentation - not started
-# * possibility to skip catalog or file while scan workspace - not started
-
 import sys
 import os
 import platform
@@ -14,7 +8,6 @@ import json
 from fnmatch import fnmatch
 from optparse import OptionParser
 
-# functions
 def isWindows():
     if platform.system() == 'Linux':
         return False
@@ -24,8 +17,6 @@ def isWindows():
 def arrayToString(value):
     i = ' '
     return i.join(value)
-
-# class
 
 class Consts:
     JsonFileName = 'build.json'
@@ -115,6 +106,14 @@ class Workspace:
         self.objectTargets = []
         self.destFileList = self.settingsCatalog + '/filedb'
 
+    def clean(self):
+        self.fileList.clear()
+        self.dirsList.clear()
+        self.fileListWithoutExt.clear()
+        self.fileListOnlyName.clear()
+        self.fileListWithObject.clear()
+        self.objectTargets.clear()
+
     def save(self):
         currentFileList = open(self.destFileList, 'w')
         currentFileList.seek(0) # probably is set in the upper line, but I want to be sure
@@ -128,6 +127,7 @@ class Workspace:
         pervList = open(self.destFileList, 'r')
         d1 = pervList.readlines()
         pervList.close()
+        self.clean()
         self.scan()
         if len(self.fileList) != len(d1):
             return True
@@ -159,32 +159,54 @@ class Workspace:
             #for i in range(0, len(self.dirsList)):
             #    self.dirsList[i] = self.dirsList[i][2:] # remove '.\\'
             # print(self.fileList)
+        self.fileListWithoutExt.clear()
         for i in self.fileList:
             self.fileListWithoutExt.append(os.path.splitext(i)[0])
 
         for i in self.fileListWithoutExt:
             self.fileListOnlyName.append(os.path.basename(i))
-
+            
+        self.fileListWithObject.clear()
         for i in self.fileListOnlyName:
             self.fileListWithObject.append(i + '.o')
-        
+        # print('fileListWithoutExt: ' + arrayToString(self.fileListWithoutExt))
+        # print('dirList: ' + arrayToString(self.dirsList))
         for i in self.fileListWithoutExt:
             self.objectTargets.append(i + '.o')
 
     def getDirs(self):
+        # print('dirsList(): ' + arrayToString(self.dirsList))
         return self.dirsList
 
     def getFileList(self):
+        # print('getFileList(): ' + arrayToString(self.fileList))
         return self.fileList
 
     def getFileListOnlyName(self):
+        # print('getFileListOnlyName(): ' + arrayToString(self.fileListOnlyName))
         return self.fileListOnlyName
 
     def getFileListWithObject(self):
+        # print('getFileListWithObject(): ' + arrayToString(self.fileListWithObject))
         return self.fileListWithObject
 
     def getObjectTargets(self):
+        # print('getObjectTargets(): ' + arrayToString(self.objectTargets))
         return self.objectTargets
+
+    def numberOfFiles(self):
+        # v = len(self.fileList)
+        # print ('\nfileList: ' , v)
+        # v = len(self.dirsList)
+        # print ('dirsList: ' , v)
+        # v = len(self.fileListOnlyName)
+        # print ('fileListOnlyName: ' , v)
+        # v = len(self.fileListWithObject)
+        # print('getFileListWithObject(): ' + arrayToString(self.fileListWithObject))
+        # print ('fileListWithObject: ', v)
+        # v = len(self.objectTargets)
+        # print ('objectTargets: ' , v , '\n')
+        return len(self.fileList)
 
 class MakeConstValues:
     Includes = 'INCLUDES'
@@ -366,14 +388,14 @@ class MakefileGenerator:
 
         # sub-targets
         self.writeLine('\ndebug-target:')
-        for i in range(0, len(workspace.getFileListWithObject())):
+        for i in range(0, workspace.numberOfFiles()):
             oDir = MakeOutputsCatalogs.DebugObjectFile + '/' + workspace.getObjectTargets()[i]
             self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.DefineDebug +
-                           ') $(' + MakeConstValues.DCXXFlags + ') -c ' + workspace.getFileList()[i] + ' $(' +
-                           MakeConstValues.Includes + ') -o ' + oDir)
+                            ') $(' + MakeConstValues.DCXXFlags + ') -c ' + workspace.getFileList()[i] + ' $(' +
+                            MakeConstValues.Includes + ') -o ' + oDir)
 
         self.writeLine('\nrelease-target:')
-        for i in range(0, len(workspace.getFileListWithObject())):
+        for i in range(0, workspace.numberOfFiles()):
             oDir = MakeOutputsCatalogs.ReleaseObjectFile + '/' + workspace.getObjectTargets()[i]
             self.writeLine('\t$(' + MakeConstValues.GCC + ') $(' + MakeConstValues.DefineRelease +
                            ') $(' + MakeConstValues.CXXFlags + ') -c ' + workspace.getFileList()[i] + ' $(' +
@@ -393,10 +415,13 @@ class MakefileGenerator:
 
 def generateProject(buildCatalog, parameters):
     workspace = Workspace(buildCatalog)
-    workspace.update()
     buildJsonFile = BuildJson(parameters)
-    makefile = MakefileGenerator(buildCatalog, buildJsonFile)
-    makefile.generateMakefile(workspace)
+    if workspace.isChanged() == True:
+        workspace.update()
+        makefile = MakefileGenerator(buildCatalog, buildJsonFile)
+        makefile.generateMakefile(workspace)
+    else:
+        print('No changes')
 
 def usage(): # improvement this description
     message = "python3 build.py [args]\n" \
