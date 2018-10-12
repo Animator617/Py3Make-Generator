@@ -230,13 +230,13 @@ class MakeOutputsCatalogs:
 
 class PlatformDeps:
     def includes(self):
-        return
+        return ''
     
     def msvcLibs(self):
-        return
+        return ''
 
     def libs(self):
-        return
+        return ''
 
 class WindowsDeps(PlatformDeps):
     def __init__(self, buildJsonFile):
@@ -272,7 +272,7 @@ class LinuxDeps(PlatformDeps):
 
     # not applicable
     def msvcLibs(self):
-        return
+        return ''
 
     def libs(self):
         result = []
