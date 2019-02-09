@@ -14,7 +14,7 @@ def isWindows():
     else:
         return True
 
-def arrayToString(value):
+def  arrayToString(value):
     i = ' '
     return i.join(value)
 
@@ -137,6 +137,8 @@ class Workspace:
     def update(self):
         if self.isChanged():
             self.fileList.clear() # clear old file list
+            self.dirsList.clear()
+            self.objectTargets.clear()
             self.scan() # get new file list
             self.save() # save to filedb file list
 
@@ -413,6 +415,7 @@ class MakefileGenerator:
 
         print('.. Done')
 
+
 def generateProject(buildCatalog, parameters):
     workspace = Workspace(buildCatalog)
     buildJsonFile = BuildJson(parameters)
@@ -423,22 +426,26 @@ def generateProject(buildCatalog, parameters):
     else:
         print('No changes')
 
+
 def usage(): # improvement this description
     message = "python3 build.py [args]\n" \
               "\t[args]:\n" \
               "\t  python3 build.py generate - generate a Makefile base on build.json file"
     return message
 
+
 def actions(action, parameters):
-    settingsCatalog = '.builddb'
+    settingsCatalog = ".builddb"
     if action == 'generate': generateProject(settingsCatalog, parameters)
-    else: usage()
+    else:
+        usage()
+
 
 def main():
     global buildJsonFileDir
     args = sys.argv[1:]
     parser = OptionParser(usage=usage())
-    parser.add_option('-s', '--settings',dest='buildJsonFileDir', default='build.json')
+    parser.add_option('-s', '--settings', dest='buildJsonFileDir', default='build.json')
     (option, arg) = parser.parse_args()
     buildJsonFileDir = option.buildJsonFileDir
     if not args:
@@ -446,6 +453,7 @@ def main():
     else:
         for i in args:
             actions(i, buildJsonFileDir)
-    
+
+
 if __name__ == "__main__":
     main()
