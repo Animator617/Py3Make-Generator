@@ -1,5 +1,8 @@
 .vscode/
 .builddb/
+.idea/
+__pycache__/
 bin/
 obj/
 *.txt
+Makefile
