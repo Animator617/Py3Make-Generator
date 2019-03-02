@@ -42,3 +42,5 @@ Use a `build.sh` or `build.bat` to automatic update a workspace and run a compil
 * ~~Support to link MSVC library (.lib)~~
 * ~~Code refactor~~
 
+## Know issues
+* The script does not include changes to the .json file after create `.builddb` catalog
